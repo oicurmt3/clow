@@ -1,0 +1,4779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clow — investigation Flows</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #e8eaee;
+      --bg1: #f3f4f7;
+      --bg2: #fafbfc;
+      --surface: #ffffff;
+      --border: #cfd3dc;
+      --border-soft: #e2e5ec;
+      --text: #1c2430;
+      --text-muted: #5c6675;
+      --text-faint: #8a93a3;
+      --primary: #2f5d8c;
+      --primary-hover: #254a70;
+      --primary-soft: #e8f0f8;
+      --secondary: #4a5568;
+      --secondary-hover: #3a4352;
+      --danger: #b33b3b;
+      --danger-hover: #922f2f;
+      --danger-soft: #fceeee;
+      --success: #2d6a4f;
+      --success-soft: #e8f5ef;
+      --warn: #9a6b1f;
+      --warn-soft: #faf3e4;
+      --shadow: 0 1px 2px rgba(28, 36, 48, 0.06), 0 4px 16px rgba(28, 36, 48, 0.06);
+      --radius: 10px;
+      --radius-sm: 6px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --font-display: "Source Serif 4", Georgia, serif;
+      --header-h: 56px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(47, 93, 140, 0.08), transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, rgba(45, 106, 79, 0.06), transparent 50%),
+        linear-gradient(180deg, var(--bg1) 0%, var(--bg0) 100%);
+      background-attachment: fixed;
+    }
+
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; border: none; background: none; }
+    a { color: var(--primary); }
+    h1, h2, h3 { font-family: var(--font-display); font-weight: 700; line-height: 1.2; margin: 0; }
+    p { margin: 0; }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 20px;
+      background: rgba(250, 251, 252, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .brand-name {
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand-tag {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 0 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+    .btn-secondary { background: var(--secondary); color: #fff; }
+    .btn-secondary:hover:not(:disabled) { background: var(--secondary-hover); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover:not(:disabled) { background: var(--danger-hover); }
+    .btn-neutral {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-neutral:hover:not(:disabled) { background: var(--bg1); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border-color: transparent;
+    }
+    .btn-ghost:hover:not(:disabled) { background: var(--border-soft); color: var(--text); }
+    .btn-sm { min-height: 30px; padding: 0 10px; font-size: 0.8rem; }
+    .btn-lg { min-height: 44px; padding: 0 20px; font-size: 0.95rem; }
+    .btn-icon {
+      min-width: 36px;
+      min-height: 36px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-icon.btn-danger-ghost {
+      color: var(--danger);
+      background: transparent;
+      border-color: transparent;
+    }
+    .btn-icon.btn-danger-ghost:hover:not(:disabled) {
+      background: var(--danger-soft);
+      color: var(--danger-hover);
+    }
+    .material-symbols-outlined {
+      font-family: "Material Symbols Outlined";
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      font-feature-settings: "liga";
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 20px 64px;
+    }
+    .main.wide { max-width: 1280px; }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .page-title {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .page-title h1 { font-size: 1.75rem; }
+    .page-title .sub { color: var(--text-muted); margin-top: 4px; font-size: 0.95rem; }
+
+    .muted { color: var(--text-muted); }
+    .faint { color: var(--text-faint); }
+    .hidden { display: none !important; }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+    .tag.demo { background: var(--warn-soft); color: var(--warn); }
+    .tag.ok { background: var(--success-soft); color: var(--success); }
+    .tag.warn { background: var(--warn-soft); color: var(--warn); }
+
+    .alert {
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg1);
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+    }
+    .alert.error { background: var(--danger-soft); border-color: #e8b4b4; color: #6b2222; }
+    .alert.success { background: var(--success-soft); border-color: #b7d9c8; color: #1e4a37; }
+    .alert.warn { background: var(--warn-soft); border-color: #e6d3a4; color: #6b4a12; }
+
+    /* Library */
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin: 24px 0 10px;
+    }
+    .card-list { display: flex; flex-direction: column; gap: 10px; }
+    .card {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      padding: 16px 18px;
+      align-items: start;
+    }
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 650;
+      margin-bottom: 4px;
+    }
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+    }
+    .empty-state h2 { margin-bottom: 8px; color: var(--text); }
+
+    /* Builder layout */
+    .builder-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 16px;
+      min-height: 70vh;
+    }
+    @media (max-width: 860px) {
+      .builder-layout { grid-template-columns: 1fr; }
+    }
+    .builder-side, .builder-main { padding: 0; overflow: hidden; }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-soft);
+      background: var(--bg2);
+    }
+    .panel-head h2 { font-size: 0.95rem; font-family: var(--font); font-weight: 700; }
+    .panel-body { padding: 14px; }
+    .step-list { list-style: none; margin: 0; padding: 8px; max-height: 65vh; overflow: auto; }
+    .step-li {
+      display: flex;
+      align-items: stretch;
+      gap: 4px;
+      margin-bottom: 4px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      background: transparent;
+      transition: border-color 0.15s, opacity 0.15s;
+    }
+    .step-li .drag-handle {
+      align-self: center;
+      flex-shrink: 0;
+      height: 40px;
+    }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+      text-align: left;
+      padding: 10px 10px 10px 4px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+    }
+    .step-item:hover { background: var(--bg1); }
+    .step-li.active .step-item,
+    .step-item.active {
+      background: var(--primary-soft);
+      border-color: #c5d7eb;
+    }
+    .step-item .si-title { font-weight: 600; font-size: 0.88rem; }
+    .step-item .si-meta { font-size: 0.75rem; color: var(--text-muted); }
+    .step-badge {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      background: var(--border-soft);
+      color: var(--text-muted);
+    }
+    .step-item.active .step-badge { background: var(--primary); color: #fff; }
+    .step-badge.start { outline: 2px solid var(--success); outline-offset: 1px; }
+
+    .form-grid { display: grid; gap: 14px; }
+    .form-row { display: grid; gap: 6px; }
+    .form-row.two {
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 600px) {
+      .form-row.two { grid-template-columns: 1fr; }
+    }
+    label.field-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+    .field-hint { font-size: 0.78rem; color: var(--text-faint); }
+    input[type="text"], input[type="number"], input[type="url"], select, textarea {
+      width: 100%;
+      min-height: 38px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg2);
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid rgba(47, 93, 140, 0.35);
+      border-color: var(--primary);
+    }
+
+    .option-editor { display: flex; flex-direction: column; gap: 8px; }
+    .option-head,
+    .option-row {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) auto auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .rule-card {
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      background: var(--bg1);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .rule-card.dragging { opacity: 0.45; }
+    .rule-card.drop-before::before,
+    .rule-card.drop-after::after {
+      content: "";
+      position: absolute;
+      left: 2px;
+      right: 2px;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 2px;
+      z-index: 6;
+      pointer-events: none;
+    }
+    .rule-card { position: relative; }
+    .rule-card.drop-before::before { top: -6px; }
+    .rule-card.drop-after::after { bottom: -6px; }
+    .rule-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .rule-head-left {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .cond-row {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr 1fr auto;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .cond-row.cond-invalid {
+      padding: 8px;
+      margin-left: -8px;
+      margin-right: -8px;
+      border-radius: var(--radius-sm);
+      background: var(--danger-soft);
+      outline: 1px solid #e8b4b4;
+    }
+    .cond-row.cond-invalid select {
+      border-color: #d48989;
+    }
+    .cond-invalid-hint {
+      grid-column: 1 / -1;
+      font-size: 0.78rem;
+      color: var(--danger);
+      font-weight: 600;
+      margin-top: -4px;
+    }
+    @media (max-width: 800px) {
+      .cond-row { grid-template-columns: 1fr; }
+    }
+    .rule-then {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .option-head {
+      padding: 0 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-faint);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .option-head span:last-child { text-align: right; }
+    .option-row {
+      padding: 6px 8px;
+      background: var(--bg2);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      transition: box-shadow 0.15s, border-color 0.15s, opacity 0.15s;
+    }
+    .option-row .opt-goto {
+      min-width: 0;
+    }
+    .option-row .opt-goto select {
+      min-height: 36px;
+      width: 100%;
+    }
+    .option-row .opt-goto-note {
+      font-size: 0.75rem;
+      color: var(--text-faint);
+      padding: 6px 0;
+    }
+    .option-row.dragging,
+    .step-li.dragging {
+      opacity: 0.45;
+      border-color: var(--primary);
+    }
+    .option-row,
+    .step-li {
+      position: relative;
+    }
+    .option-row.drop-before::before,
+    .option-row.drop-after::after,
+    .step-li.drop-before::before,
+    .step-li.drop-after::after {
+      content: "";
+      position: absolute;
+      left: 2px;
+      right: 2px;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 2px;
+      z-index: 6;
+      pointer-events: none;
+      box-shadow: 0 0 0 1px rgba(47, 93, 140, 0.2);
+    }
+    .option-row.drop-before::before,
+    .step-li.drop-before::before {
+      top: -6px;
+    }
+    .option-row.drop-after::after,
+    .step-li.drop-after::after {
+      bottom: -6px;
+    }
+    .drag-handle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 36px;
+      border-radius: 4px;
+      color: var(--text-faint);
+      cursor: grab;
+      user-select: none;
+      font-size: 1rem;
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+    .drag-handle:active { cursor: grabbing; }
+    .drag-handle:hover { color: var(--text-muted); background: var(--border-soft); }
+    @media (max-width: 800px) {
+      .option-head { display: none; }
+      .option-row {
+        grid-template-columns: 28px 1fr auto auto;
+      }
+      .option-row input[data-optvalue] {
+        grid-column: 2 / -1;
+      }
+    }
+    .route-row {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 8px;
+      align-items: center;
+      padding: 8px;
+      background: var(--bg1);
+      border-radius: var(--radius-sm);
+    }
+    @media (max-width: 600px) {
+      .route-row { grid-template-columns: 1fr; }
+    }
+    .link-row {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr auto;
+      gap: 8px;
+    }
+    @media (max-width: 600px) {
+      .link-row { grid-template-columns: 1fr; }
+    }
+    .action-list { display: flex; flex-direction: column; gap: 8px; }
+    .action-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .preset-menu {
+      position: relative;
+    }
+    .preset-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      z-index: 20;
+      min-width: 200px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow);
+      padding: 6px;
+    }
+    .preset-dropdown button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .preset-dropdown button:hover { background: var(--bg1); }
+
+    /* Runner */
+    .runner {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .runner-progress {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .runner-card { padding: 28px 28px 24px; }
+    @media (max-width: 600px) {
+      .runner-card { padding: 20px 16px; }
+    }
+    .runner-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-faint);
+      margin-bottom: 8px;
+    }
+    .runner-prompt {
+      font-family: var(--font-display);
+      font-size: 1.55rem;
+      margin-bottom: 12px;
+    }
+    .runner-guidance {
+      background: var(--bg1);
+      border-left: 3px solid var(--primary);
+      padding: 12px 14px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin-bottom: 16px;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      white-space: pre-wrap;
+    }
+    .runner-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .runner-links a {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 6px 10px;
+      background: var(--primary-soft);
+      border-radius: var(--radius-sm);
+    }
+    .runner-links a:hover { text-decoration: underline; }
+
+    .control-block { margin: 20px 0 8px; }
+    .current-value {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 8px 12px;
+      background: var(--bg1);
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .current-value span.val { color: var(--primary); }
+
+    .radio-list, .check-list { display: flex; flex-direction: column; gap: 8px; }
+    .choice {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg2);
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .choice:hover { border-color: var(--primary); background: var(--primary-soft); }
+    .choice:has(input:checked) {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      box-shadow: inset 0 0 0 1px var(--primary);
+    }
+    .choice input { width: 18px; height: 18px; accent-color: var(--primary); }
+
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 56px;
+      height: 32px;
+      border-radius: 999px;
+      background: var(--border);
+      border: none;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle-switch.on { background: var(--primary); }
+    .toggle-switch::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+    .toggle-switch.on::after { transform: translateX(24px); }
+    .toggle-label { font-weight: 600; font-size: 1.05rem; }
+
+    .cycle-btn {
+      width: 100%;
+      min-height: 64px;
+      padding: 16px 20px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--primary) 0%, #3a6fa0 100%);
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: 700;
+      font-family: var(--font-display);
+      box-shadow: var(--shadow);
+      transition: transform 0.12s, filter 0.12s;
+    }
+    .cycle-btn:hover { filter: brightness(1.05); }
+    .cycle-btn:active { transform: scale(0.98); }
+    .cycle-hint { text-align: center; font-size: 0.8rem; color: var(--text-faint); margin-top: 8px; }
+
+    .slider-wrap { padding: 8px 0; }
+    .slider-wrap input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+      height: 8px;
+    }
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-faint);
+      margin-top: 4px;
+    }
+
+    select.runner-select {
+      min-height: 48px;
+      font-size: 1rem;
+      font-weight: 600;
+      background: var(--surface);
+    }
+
+    .runner-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+    .runner-actions .btn { flex: 1; min-width: 120px; }
+
+    .history-trail {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-soft);
+    }
+    .history-trail h3 {
+      font-family: var(--font);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-faint);
+      margin-bottom: 8px;
+    }
+    .history-item {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 4px;
+      padding: 8px 0;
+      font-size: 0.85rem;
+      border-bottom: 1px dashed var(--border-soft);
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-item .history-main {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .route-reason {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--text-faint);
+      font-weight: 500;
+      line-height: 1.35;
+    }
+    .route-reason.arrival {
+      margin: 0 0 14px;
+      padding: 8px 12px;
+      background: var(--bg1);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+    }
+
+    /* End screen */
+    .end-screen .runner-prompt { margin-bottom: 8px; }
+    .path-list, .actions-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .path-list li, .actions-list li {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-soft);
+      font-size: 0.92rem;
+    }
+    .path-list li:last-child, .actions-list li:last-child { border-bottom: none; }
+    .path-list .q { color: var(--text-muted); display: block; font-size: 0.8rem; }
+    .path-list .a { font-weight: 600; display: block; }
+    .path-list .route-reason { margin-top: 4px; }
+    .actions-list li {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .actions-list .action-text {
+      flex: 1;
+      min-width: 0;
+    }
+    .status-cycle {
+      flex-shrink: 0;
+      min-width: 72px;
+      min-height: 32px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #fff;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    }
+    .status-cycle:active { transform: scale(0.97); }
+    .status-cycle[data-status="null"] {
+      background: var(--secondary);
+      border-color: var(--secondary);
+    }
+    .status-cycle[data-status="done"] {
+      background: var(--success);
+      border-color: var(--success);
+    }
+    .status-cycle[data-status="na"] {
+      background: var(--warn);
+      border-color: var(--warn);
+    }
+    .status-cycle-hint {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: 0;
+      opacity: 0.85;
+      margin-top: 1px;
+    }
+    @media print {
+      .status-cycle-hint { display: none; }
+    }
+    .summary-block {
+      margin-top: 20px;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .summary-block h3 {
+      font-family: var(--font);
+      font-size: 0.85rem;
+      padding: 10px 14px;
+      background: var(--bg1);
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .outcome-image {
+      display: block;
+      width: 100%;
+      max-height: 280px;
+      object-fit: contain;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-soft);
+      background: var(--bg1);
+      margin: 0 0 16px;
+    }
+    .segmented {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      background: var(--bg2);
+    }
+    .segmented button {
+      flex: 1;
+      min-height: 36px;
+      padding: 0 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      border-right: 1px solid var(--border);
+    }
+    .segmented button:last-child { border-right: none; }
+    .segmented button.active {
+      background: var(--primary);
+      color: #fff;
+    }
+    .segmented button:hover:not(.active) { background: var(--border-soft); color: var(--text); }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(28, 36, 48, 0.45);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: min(480px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      padding: 20px;
+    }
+    .modal h2 { font-size: 1.25rem; margin-bottom: 8px; }
+    .modal p { color: var(--text-muted); margin-bottom: 16px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 200;
+      background: var(--text);
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 500;
+      box-shadow: var(--shadow);
+      animation: toastIn 0.2s ease;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Library promo → training.html */
+    .train-promo {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, var(--primary-soft), var(--bg2));
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius);
+    }
+    .train-promo h2 {
+      font-size: 1.15rem;
+      margin-bottom: 4px;
+    }
+    .train-promo p {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      max-width: 48ch;
+    }
+
+    @media print {
+      .app-header, .toolbar, .header-actions, .runner-actions, .no-print { display: none !important; }
+      body { background: #fff; }
+      .panel { box-shadow: none; border: none; }
+      .main { max-width: none; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <a href="#" class="brand" id="brandHome">
+      <span class="brand-name">Clow</span>
+      <span class="brand-tag">key questions → robust evidence</span>
+    </a>
+    <div class="header-actions">
+      <a class="btn btn-ghost btn-sm" href="training.html">Training</a>
+      <div id="headerActions" style="display:contents"></div>
+    </div>
+  </header>
+  <main class="main" id="app"></main>
+  <div id="modalRoot"></div>
+  <div id="toastRoot"></div>
+
+  <script>
+(function () {
+  "use strict";
+
+  const STORAGE_KEY = "clow.v1";
+  const DEMO_ID = "wf_demo_clow";
+
+  // ─── Helpers ───────────────────────────────────────────
+  const uid = (p = "id") => p + "_" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  const now = () => new Date().toISOString();
+  const fmtDate = (iso) => {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  };
+  const LAST_RUNNER_KEY = "clow.lastRunner";
+  const fmtRunName = () => {
+    const d = new Date();
+    return "Run · " + d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  };
+  function loadLastRunner() {
+    try {
+      const raw = localStorage.getItem(LAST_RUNNER_KEY);
+      if (!raw) return { userName: "", caseNumber: "" };
+      const o = JSON.parse(raw);
+      return {
+        userName: String(o.userName || ""),
+        caseNumber: String(o.caseNumber || "")
+      };
+    } catch {
+      return { userName: "", caseNumber: "" };
+    }
+  }
+  function saveLastRunner(userName, caseNumber) {
+    localStorage.setItem(LAST_RUNNER_KEY, JSON.stringify({ userName, caseNumber }));
+  }
+  /** Display / export title from investigator + case. */
+  function composeRunName({ userName, caseNumber, test }) {
+    const u = String(userName || "").trim();
+    const c = String(caseNumber || "").trim();
+    const parts = [];
+    if (test) parts.push("Test");
+    if (c) parts.push(c);
+    if (u) parts.push(u);
+    if (parts.length > (test ? 1 : 0)) return parts.join(" · ");
+    return (test ? "Test run · " : "") + fmtRunName().replace(/^Run · /, "");
+  }
+  function runDisplayTitle(run) {
+    if (!run) return "Run";
+    if (run.name) return run.name;
+    return composeRunName({
+      userName: run.userName,
+      caseNumber: run.caseNumber,
+      test: run.isTest
+    });
+  }
+  const escapeHtml = (s) => String(s ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  const downloadJson = (filename, data) => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  const downloadText = (filename, text, mime) => {
+    const blob = new Blob([text], { type: mime || "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  const deepClone = (o) => JSON.parse(JSON.stringify(o));
+
+  // ─── Demo Flow (extensive multi-branch showcase) ───────
+  function createDemoWorkflow() {
+    const nBrief = "n_brief";
+    const nGate = "n_gate";
+    const nContext = "n_context";
+    const nTrainIntro = "n_train_intro";
+    const nPeerNote = "n_peer_note";
+    const nDeskScope = "n_desk_scope";
+    const nTheme = "n_theme";
+    const nUrgency = "n_urgency";
+    const nPublic = "n_public";
+    const nChannel = "n_channel";
+    const nTime = "n_time";
+    const nPriority = "n_priority";
+    const nLegal = "n_legal";
+    const nLegalHold = "n_legal_hold";
+    const nWitnesses = "n_witnesses";
+    const nEvidence = "n_evidence";
+    const nForensic = "n_forensic";
+    const nIntegrity = "n_integrity";
+    const nConfidence = "n_confidence";
+    const nGap = "n_gap";
+    const nComplexity = "n_complexity";
+    const nCapacity = "n_capacity";
+    const nRecordsPlan = "n_records_plan";
+    const nPlan = "n_plan";
+    const nEndScreenOut = "n_end_screen_out";
+    const nEndDesk = "n_end_desk";
+    const nEndPeer = "n_end_peer";
+    const nEndTrain = "n_end_train";
+    const nEndPursue = "n_end_pursue";
+    const nEndStrong = "n_end_strong";
+    const nEndEscalate = "n_end_escalate";
+    const nEndLegal = "n_end_legal";
+
+    const stepOrder = [
+      nBrief, nGate, nContext, nTrainIntro, nPeerNote, nDeskScope,
+      nTheme, nUrgency, nPublic, nChannel, nTime, nPriority,
+      nLegal, nLegalHold, nWitnesses, nEvidence, nForensic, nIntegrity,
+      nConfidence, nGap, nComplexity, nCapacity, nRecordsPlan, nPlan,
+      nEndScreenOut, nEndDesk, nEndPeer, nEndTrain, nEndPursue, nEndStrong, nEndEscalate, nEndLegal
+    ];
+
+    return {
+      id: DEMO_ID,
+      name: "Demo · Extensive evidence Flow",
+      tags: ["demo", "showcase", "extensive"],
+      isDemo: true,
+      createdAt: now(),
+      updatedAt: now(),
+      startNodeId: nBrief,
+      stepOrder,
+      nodes: {
+        [nBrief]: {
+          id: nBrief,
+          title: "Demo brief",
+          kind: "outcome",
+          prompt: "Extensive multi-branch Flow showcase",
+          guidance: "This demo is built to exercise Clow fully: every answer control (toggle, radio, select, cycle, checkbox, slider), IF/THEN with AND and OR, equals / ≠ / includes / excludes / in band, prior-step conditions, multiple checkpoints, rejoining branches, and several distinct endings. Watch the matched-rule banner after each Next.\n\nSuggested experiments: (1) No key question → screen-out. (2) Safety + Critical urgency → priority path. (3) High weight path with None yet → escalate. (4) Training + low gap → training debrief. (5) Financial + records + high confidence → strong pursue path.",
+          links: [
+            { label: "Clow training", url: "training.html" },
+            { label: "Clow home", url: "https://sandgroper.net/clow" }
+          ],
+          imageUrl: "https://picsum.photos/seed/clow-extensive/960/400",
+          endHere: false,
+          actions: [
+            "Skim the matched-rule banner after each step",
+            "Plan two contrasting runs before you start",
+            "Mark practice actions To do → Done as you go"
+          ],
+          next: nGate
+        },
+
+        [nGate]: {
+          id: nGate,
+          title: "Key question gate",
+          kind: "question",
+          prompt: "Is there a key question that requires further evidence?",
+          guidance: "Toggle. Yes opens the full branching Flow. No closes with a light screen-out ending.",
+          links: [],
+          fieldType: "toggle",
+          options: [
+            { value: "yes", label: "Yes" },
+            { value: "no", label: "No" }
+          ],
+          defaultValue: "yes",
+          defaultRoute: nEndScreenOut,
+          rules: [
+            { id: "r_gate_yes", join: "and", conditions: [{ stepId: nGate, op: "eq", value: "yes" }], then: nContext },
+            { id: "r_gate_no", join: "and", conditions: [{ stepId: nGate, op: "eq", value: "no" }], then: nEndScreenOut }
+          ]
+        },
+
+        [nContext]: {
+          id: nContext,
+          title: "Working context",
+          kind: "question",
+          prompt: "What is the working context for this run?",
+          guidance: "Radio with four branches: Field ops and Desk continue differently; Training and Peer review take short teaching/review detours before rejoining.",
+          links: [],
+          fieldType: "radio",
+          options: [
+            { value: "field", label: "Field / operational" },
+            { value: "desk", label: "Desktop review" },
+            { value: "training", label: "Training rehearsal" },
+            { value: "peer", label: "Peer review / QA" }
+          ],
+          defaultValue: "field",
+          defaultRoute: nTheme,
+          rules: [
+            { id: "r_ctx_train", join: "and", conditions: [{ stepId: nContext, op: "eq", value: "training" }], then: nTrainIntro },
+            { id: "r_ctx_peer", join: "and", conditions: [{ stepId: nContext, op: "eq", value: "peer" }], then: nPeerNote },
+            { id: "r_ctx_desk", join: "and", conditions: [{ stepId: nContext, op: "eq", value: "desk" }], then: nDeskScope },
+            { id: "r_ctx_field", join: "and", conditions: [{ stepId: nContext, op: "eq", value: "field" }], then: nTheme }
+          ]
+        },
+
+        [nTrainIntro]: {
+          id: nTrainIntro,
+          title: "Training intro",
+          kind: "outcome",
+          prompt: "Training path — judgment practice",
+          guidance: "Checkpoint on the training branch. You will rejoin the main Flow so learners experience the same rules as operational runs, then may finish on a training debrief if the gap stays low.",
+          links: [{ label: "Education chapter", url: "training.html#educate" }],
+          imageUrl: "",
+          endHere: false,
+          actions: [
+            "State the key question in one sentence",
+            "Predict one AND rule and one OR rule you expect to see"
+          ],
+          next: nTheme
+        },
+
+        [nPeerNote]: {
+          id: nPeerNote,
+          title: "Peer review note",
+          kind: "outcome",
+          prompt: "QA lens — review the methodology path",
+          guidance: "Peer-review branch checkpoint. Focus on whether rules and ELSE make sense, then continue into the same evidence questions.",
+          links: [{ label: "Rules chapter", url: "training.html#rules" }],
+          imageUrl: "",
+          endHere: false,
+          actions: [
+            "Note one rule that feels too broad",
+            "Note one ELSE that might hide a missing branch"
+          ],
+          next: nTheme
+        },
+
+        [nDeskScope]: {
+          id: nDeskScope,
+          title: "Desktop scope",
+          kind: "question",
+          prompt: "How deep should this desktop review go?",
+          guidance: "Select on the desk branch. Light file check can short-circuit later to a desk close if urgency and gap stay low. Full desk review rejoins the main theme path.",
+          links: [],
+          fieldType: "select",
+          options: [
+            { value: "light", label: "Light file check only" },
+            { value: "standard", label: "Standard desktop review" },
+            { value: "deep", label: "Deep desktop reconstruction" }
+          ],
+          defaultValue: "standard",
+          defaultRoute: nTheme,
+          rules: []
+        },
+
+        [nTheme]: {
+          id: nTheme,
+          title: "Matter theme",
+          kind: "question",
+          prompt: "What is the primary matter theme?",
+          guidance: "Select with six themes. Safety and corruption raise priority later via OR rules; financial unlocks a records-strong ending when paired with other answers.",
+          links: [],
+          fieldType: "select",
+          options: [
+            { value: "safety", label: "Safety / harm" },
+            { value: "financial", label: "Financial / records" },
+            { value: "procedural", label: "Procedural / process" },
+            { value: "digital", label: "Digital / systems" },
+            { value: "corruption", label: "Integrity / corruption risk" },
+            { value: "other", label: "Other" }
+          ],
+          defaultValue: "procedural",
+          defaultRoute: nUrgency,
+          rules: []
+        },
+
+        [nUrgency]: {
+          id: nUrgency,
+          title: "Urgency",
+          kind: "question",
+          prompt: "How urgent is securing evidence?",
+          guidance: "Cycle control (four levels). Critical and High feed OR rules into the priority checkpoint.",
+          links: [],
+          fieldType: "cycle",
+          options: [
+            { value: "low", label: "Low" },
+            { value: "medium", label: "Medium" },
+            { value: "high", label: "High" },
+            { value: "critical", label: "Critical" }
+          ],
+          defaultValue: "medium",
+          defaultRoute: nPublic,
+          rules: []
+        },
+
+        [nPublic]: {
+          id: nPublic,
+          title: "Public / media risk",
+          kind: "question",
+          prompt: "Is there elevated public or media risk?",
+          guidance: "Toggle. Yes also contributes to the priority OR rule with urgency and theme.",
+          links: [],
+          fieldType: "toggle",
+          options: [
+            { value: "yes", label: "Yes" },
+            { value: "no", label: "No" }
+          ],
+          defaultValue: "no",
+          defaultRoute: nChannel,
+          rules: []
+        },
+
+        [nChannel]: {
+          id: nChannel,
+          title: "Intake channel",
+          kind: "question",
+          prompt: "How did this matter enter the system?",
+          guidance: "Select. Agency referral is reused later with integrity answers (OR). Anonymous tips change witness expectations.",
+          links: [],
+          fieldType: "select",
+          options: [
+            { value: "tip", label: "Anonymous tip" },
+            { value: "complaint", label: "Named complaint" },
+            { value: "referral", label: "Agency referral" },
+            { value: "audit", label: "Audit / compliance flag" },
+            { value: "self", label: "Self-initiated" }
+          ],
+          defaultValue: "complaint",
+          defaultRoute: nTime,
+          rules: []
+        },
+
+        [nTime]: {
+          id: nTime,
+          title: "Time pressure",
+          kind: "question",
+          prompt: "What is the practical time pressure?",
+          guidance: "Radio. Hours-level pressure joins the priority OR cluster with Critical/High urgency, Safety/Corruption themes, or public risk.",
+          links: [],
+          fieldType: "radio",
+          options: [
+            { value: "hours", label: "Hours — act today" },
+            { value: "days", label: "Days — this week" },
+            { value: "weeks", label: "Weeks — planned pace" },
+            { value: "none", label: "No special deadline" }
+          ],
+          defaultValue: "days",
+          defaultRoute: nLegal,
+          rules: [
+            {
+              id: "r_time_or_priority",
+              join: "or",
+              conditions: [
+                { stepId: nUrgency, op: "eq", value: "critical" },
+                { stepId: nUrgency, op: "eq", value: "high" },
+                { stepId: nTheme, op: "eq", value: "safety" },
+                { stepId: nTheme, op: "eq", value: "corruption" },
+                { stepId: nPublic, op: "eq", value: "yes" },
+                { stepId: nTime, op: "eq", value: "hours" }
+              ],
+              then: nPriority
+            },
+            {
+              id: "r_time_skip_priority",
+              join: "and",
+              conditions: [
+                { stepId: nUrgency, op: "neq", value: "critical" },
+                { stepId: nPublic, op: "eq", value: "no" }
+              ],
+              then: nLegal
+            }
+          ]
+        },
+
+        [nPriority]: {
+          id: nPriority,
+          title: "Priority hold",
+          kind: "outcome",
+          prompt: "Priority path — secure evidence early",
+          guidance: "You hit this checkpoint via an OR cluster: Critical/High urgency, Safety or Corruption theme, public risk, or hours-level time pressure. Continue to legal privilege screening.",
+          links: [],
+          imageUrl: "https://picsum.photos/seed/clow-priority/900/320",
+          endHere: false,
+          actions: [
+            "Confirm a same-day evidence hold where lawful",
+            "Name the owner for priority collection",
+            "Diary why priority fired (matched rule)"
+          ],
+          next: nLegal
+        },
+
+        [nLegal]: {
+          id: nLegal,
+          title: "Privilege / legal sensitivity",
+          kind: "question",
+          prompt: "Is there a live privilege or legal-sensitivity flag?",
+          guidance: "Toggle. Yes diverts to a legal-hold checkpoint that can end on a legal path or return to witnesses.",
+          links: [],
+          fieldType: "toggle",
+          options: [
+            { value: "yes", label: "Yes — flag present" },
+            { value: "no", label: "No" }
+          ],
+          defaultValue: "no",
+          defaultRoute: nWitnesses,
+          rules: [
+            { id: "r_legal_yes", join: "and", conditions: [{ stepId: nLegal, op: "eq", value: "yes" }], then: nLegalHold },
+            { id: "r_legal_no", join: "and", conditions: [{ stepId: nLegal, op: "eq", value: "no" }], then: nWitnesses }
+          ]
+        },
+
+        [nLegalHold]: {
+          id: nLegalHold,
+          title: "Legal hold checkpoint",
+          kind: "outcome",
+          prompt: "Pause for privilege / legal review",
+          guidance: "Checkpoint on the legal branch. Continue only after the hold actions are clear. Next question asks whether to stay on a legal ending or rejoin evidence mapping.",
+          links: [],
+          imageUrl: "",
+          endHere: false,
+          actions: [
+            "Notify legal / privilege owner",
+            "Suspend non-essential collection pending advice",
+            "Record the key question under review"
+          ],
+          next: nWitnesses
+        },
+
+        [nWitnesses]: {
+          id: nWitnesses,
+          title: "Witness picture",
+          kind: "question",
+          prompt: "What best describes witness availability?",
+          guidance: "Radio. Hostile or multiple witnesses affect later planning language; anonymous channel + no witnesses is allowed but should raise caution in guidance.",
+          links: [],
+          fieldType: "radio",
+          options: [
+            { value: "none", label: "No witnesses identified" },
+            { value: "one", label: "One cooperative witness" },
+            { value: "multiple", label: "Multiple witnesses" },
+            { value: "hostile", label: "Hostile / reluctant witnesses" }
+          ],
+          defaultValue: "one",
+          defaultRoute: nEvidence,
+          rules: [
+            {
+              id: "r_wit_hostile_priority",
+              join: "and",
+              conditions: [
+                { stepId: nWitnesses, op: "eq", value: "hostile" },
+                { stepId: nUrgency, op: "eq", value: "critical" }
+              ],
+              then: nEvidence
+            }
+          ]
+        },
+
+        [nEvidence]: {
+          id: nEvidence,
+          title: "Evidence on hand",
+          kind: "question",
+          prompt: "Which evidence already addresses the key question?",
+          guidance: "Checkbox — select all that apply. Rule order: (1) AND None yet + (Critical urgency OR Safety theme) → escalate. (2) includes Forensic → forensic checkpoint. (3) OR Photos / CCTV / Devices → integrity. (4) excludes None → confidence. ELSE → confidence.",
+          links: [],
+          fieldType: "checkbox",
+          options: [
+            { value: "photos", label: "Photos / stills" },
+            { value: "cctv", label: "CCTV / video" },
+            { value: "statements", label: "Statements" },
+            { value: "records", label: "Business / system records" },
+            { value: "devices", label: "Devices / media" },
+            { value: "forensic", label: "Forensic specialist product" },
+            { value: "none", label: "None yet" }
+          ],
+          defaultValue: [],
+          defaultRoute: nConfidence,
+          rules: [
+            {
+              id: "r_ev_and_escalate",
+              join: "and",
+              conditions: [
+                { stepId: nEvidence, op: "includes", value: "none" },
+                { stepId: nUrgency, op: "eq", value: "critical" }
+              ],
+              then: nEndEscalate
+            },
+            {
+              id: "r_ev_and_safety_none",
+              join: "and",
+              conditions: [
+                { stepId: nEvidence, op: "includes", value: "none" },
+                { stepId: nTheme, op: "eq", value: "safety" },
+                { stepId: nUrgency, op: "neq", value: "low" }
+              ],
+              then: nEndEscalate
+            },
+            {
+              id: "r_ev_forensic",
+              join: "and",
+              conditions: [{ stepId: nEvidence, op: "includes", value: "forensic" }],
+              then: nForensic
+            },
+            {
+              id: "r_ev_or_integrity",
+              join: "or",
+              conditions: [
+                { stepId: nEvidence, op: "includes", value: "photos" },
+                { stepId: nEvidence, op: "includes", value: "cctv" },
+                { stepId: nEvidence, op: "includes", value: "devices" }
+              ],
+              then: nIntegrity
+            },
+            {
+              id: "r_ev_excludes_none",
+              join: "and",
+              conditions: [{ stepId: nEvidence, op: "excludes", value: "none" }],
+              then: nConfidence
+            }
+          ]
+        },
+
+        [nForensic]: {
+          id: nForensic,
+          title: "Forensic product checkpoint",
+          kind: "outcome",
+          prompt: "Forensic evidence on hand — preserve chain",
+          guidance: "Reached because Evidence includes Forensic. Confirm continuity before integrity rating, then continue.",
+          links: [],
+          imageUrl: "",
+          endHere: false,
+          actions: [
+            "Confirm chain-of-custody is documented",
+            "Restrict further handling to authorised roles"
+          ],
+          next: nIntegrity
+        },
+
+        [nIntegrity]: {
+          id: nIntegrity,
+          title: "Evidence integrity",
+          kind: "question",
+          prompt: "Is the media / visual evidence intact and usable?",
+          guidance: "Radio after photos/CCTV/devices/forensic path. Compromised → escalate. Unsure OR agency referral → continue with caution to confidence. Intact → confidence.",
+          links: [],
+          fieldType: "radio",
+          options: [
+            { value: "ok", label: "Yes — intact" },
+            { value: "unsure", label: "Unsure — needs verification" },
+            { value: "compromised", label: "No — compromised / incomplete" }
+          ],
+          defaultValue: "ok",
+          defaultRoute: nConfidence,
+          rules: [
+            { id: "r_int_bad", join: "and", conditions: [{ stepId: nIntegrity, op: "eq", value: "compromised" }], then: nEndEscalate },
+            {
+              id: "r_int_or_referral",
+              join: "or",
+              conditions: [
+                { stepId: nIntegrity, op: "eq", value: "unsure" },
+                { stepId: nChannel, op: "eq", value: "referral" }
+              ],
+              then: nConfidence
+            },
+            { id: "r_int_ok", join: "and", conditions: [{ stepId: nIntegrity, op: "eq", value: "ok" }], then: nConfidence }
+          ]
+        },
+
+        [nConfidence]: {
+          id: nConfidence,
+          title: "Confidence in the picture",
+          kind: "question",
+          prompt: "How confident are you that current evidence answers the key question?",
+          guidance: "Cycle. Low confidence pushes you toward gap/complexity scoring; High can later unlock the strong pursue ending with financial + records.",
+          links: [],
+          fieldType: "cycle",
+          options: [
+            { value: "low", label: "Low" },
+            { value: "medium", label: "Medium" },
+            { value: "high", label: "High" }
+          ],
+          defaultValue: "medium",
+          defaultRoute: nGap,
+          rules: []
+        },
+
+        [nGap]: {
+          id: nGap,
+          title: "Evidence gap",
+          kind: "question",
+          prompt: "How large is the remaining evidence gap (0–10)?",
+          guidance: "Slider bands (in band). High gap escalates. Medium/Low continue to complexity scoring.",
+          links: [],
+          fieldType: "slider",
+          options: [],
+          slider: {
+            min: 0, max: 10, step: 1,
+            bands: [
+              { max: 3, label: "Low", routeKey: "low" },
+              { max: 7, label: "Medium", routeKey: "medium" },
+              { max: 10, label: "High", routeKey: "high" }
+            ]
+          },
+          defaultValue: 5,
+          defaultRoute: nComplexity,
+          rules: [
+            { id: "r_gap_high", join: "and", conditions: [{ stepId: nGap, op: "in_band", value: "high" }], then: nEndEscalate },
+            { id: "r_gap_med", join: "and", conditions: [{ stepId: nGap, op: "in_band", value: "medium" }], then: nComplexity },
+            { id: "r_gap_low", join: "and", conditions: [{ stepId: nGap, op: "in_band", value: "low" }], then: nComplexity }
+          ]
+        },
+
+        [nComplexity]: {
+          id: nComplexity,
+          title: "Case complexity",
+          kind: "question",
+          prompt: "How complex is the remaining work (0–10)?",
+          guidance: "Second slider. Complex band + Solo capacity later escalates (resource mismatch). Simple band helps desk/training early closes.",
+          links: [],
+          fieldType: "slider",
+          options: [],
+          slider: {
+            min: 0, max: 10, step: 1,
+            bands: [
+              { max: 3, label: "Simple", routeKey: "simple" },
+              { max: 7, label: "Moderate", routeKey: "moderate" },
+              { max: 10, label: "Complex", routeKey: "complex" }
+            ]
+          },
+          defaultValue: 4,
+          defaultRoute: nCapacity,
+          rules: []
+        },
+
+        [nCapacity]: {
+          id: nCapacity,
+          title: "Team capacity",
+          kind: "question",
+          prompt: "What capacity is realistically available?",
+          guidance: "Select. This is a major branch point using prior answers (AND/OR across context, theme, confidence, gap, complexity, legal flag).",
+          links: [],
+          fieldType: "select",
+          options: [
+            { value: "solo", label: "Solo investigator" },
+            { value: "small", label: "Small team" },
+            { value: "specialist", label: "Specialist available" },
+            { value: "external", label: "External / surge support" }
+          ],
+          defaultValue: "small",
+          defaultRoute: nPlan,
+          rules: [
+            {
+              id: "r_cap_legal_end",
+              join: "and",
+              conditions: [
+                { stepId: nLegal, op: "eq", value: "yes" },
+                { stepId: nGap, op: "in_band", value: "medium" }
+              ],
+              then: nEndLegal
+            },
+            {
+              id: "r_cap_overload",
+              join: "and",
+              conditions: [
+                { stepId: nComplexity, op: "in_band", value: "complex" },
+                { stepId: nCapacity, op: "eq", value: "solo" }
+              ],
+              then: nEndEscalate
+            },
+            {
+              id: "r_cap_train",
+              join: "and",
+              conditions: [
+                { stepId: nContext, op: "eq", value: "training" },
+                { stepId: nGap, op: "in_band", value: "low" }
+              ],
+              then: nEndTrain
+            },
+            {
+              id: "r_cap_desk",
+              join: "and",
+              conditions: [
+                { stepId: nContext, op: "eq", value: "desk" },
+                { stepId: nDeskScope, op: "eq", value: "light" },
+                { stepId: nGap, op: "in_band", value: "low" },
+                { stepId: nUrgency, op: "eq", value: "low" }
+              ],
+              then: nEndDesk
+            },
+            {
+              id: "r_cap_peer",
+              join: "and",
+              conditions: [
+                { stepId: nContext, op: "eq", value: "peer" },
+                { stepId: nGap, op: "in_band", value: "low" }
+              ],
+              then: nEndPeer
+            },
+            {
+              id: "r_cap_strong",
+              join: "and",
+              conditions: [
+                { stepId: nTheme, op: "eq", value: "financial" },
+                { stepId: nEvidence, op: "includes", value: "records" },
+                { stepId: nConfidence, op: "eq", value: "high" },
+                { stepId: nGap, op: "in_band", value: "low" }
+              ],
+              then: nRecordsPlan
+            },
+            {
+              id: "r_cap_digital_specialist",
+              join: "and",
+              conditions: [
+                { stepId: nTheme, op: "eq", value: "digital" },
+                { stepId: nCapacity, op: "eq", value: "specialist" }
+              ],
+              then: nPlan
+            },
+            {
+              id: "r_cap_default_plan",
+              join: "or",
+              conditions: [
+                { stepId: nCapacity, op: "eq", value: "small" },
+                { stepId: nCapacity, op: "eq", value: "external" },
+                { stepId: nCapacity, op: "eq", value: "solo" },
+                { stepId: nCapacity, op: "eq", value: "specialist" }
+              ],
+              then: nPlan
+            }
+          ]
+        },
+
+        [nRecordsPlan]: {
+          id: nRecordsPlan,
+          title: "Records-strong plan",
+          kind: "outcome",
+          prompt: "Financial theme with strong records — tight plan",
+          guidance: "AND path: Financial theme + Records on hand + High confidence + Low gap. Finish into the strong pursue ending.",
+          links: [{ label: "Clow reference", url: "https://sandgroper.net/clow" }],
+          imageUrl: "https://picsum.photos/seed/clow-records/900/320",
+          endHere: false,
+          actions: [
+            "List remaining record pulls against the key question",
+            "Confirm retention holds on source systems",
+            "Schedule verification of totals / audit trail"
+          ],
+          next: nEndStrong
+        },
+
+        [nPlan]: {
+          id: nPlan,
+          title: "Evidence collection plan",
+          kind: "outcome",
+          prompt: "Plan the next evidence to obtain",
+          guidance: "Default planning checkpoint before a standard pursue ending. Capture concrete actions so evidence stays relevant and robust for the key question.",
+          links: [
+            { label: "Clow reference", url: "https://sandgroper.net/clow" },
+            { label: "Training guide", url: "training.html" }
+          ],
+          imageUrl: "https://picsum.photos/seed/clow-plan/900/360",
+          endHere: false,
+          actions: [
+            "List evidence still needed for the key question",
+            "Note how each item will be obtained and preserved",
+            "Align owner and deadline to urgency",
+            "Diary the matched-rule path from this run"
+          ],
+          next: nEndPursue
+        },
+
+        [nEndScreenOut]: {
+          id: nEndScreenOut,
+          title: "Screen out — light record",
+          kind: "outcome",
+          prompt: "No further evidence required",
+          guidance: "Gate answered No. File a light record that screening found no key question needing further evidence.",
+          links: [],
+          imageUrl: "",
+          endHere: true,
+          actions: [
+            "File screening note against the key question",
+            "Close enquiry as no further evidence action"
+          ]
+        },
+
+        [nEndDesk]: {
+          id: nEndDesk,
+          title: "Desktop close",
+          kind: "outcome",
+          prompt: "Light desktop review complete",
+          guidance: "AND path: Desktop context + Light scope + Low gap + Low urgency. Close with a desk-appropriate evidence note.",
+          links: [],
+          imageUrl: "",
+          endHere: true,
+          actions: [
+            "Save desktop review note",
+            "Flag if a field visit should be opened later"
+          ]
+        },
+
+        [nEndPeer]: {
+          id: nEndPeer,
+          title: "Peer review complete",
+          kind: "outcome",
+          prompt: "QA review of the Flow path",
+          guidance: "Peer-review context with a low remaining gap. Capture methodology feedback rather than operational collection.",
+          links: [{ label: "Rules chapter", url: "training.html#rules" }],
+          imageUrl: "",
+          endHere: true,
+          actions: [
+            "Record one improvement to a rule or ELSE",
+            "Share the path summary with the Flow author"
+          ]
+        },
+
+        [nEndTrain]: {
+          id: nEndTrain,
+          title: "Training debrief",
+          kind: "outcome",
+          prompt: "Training path complete — debrief",
+          guidance: "AND: Training context + Low gap. Ask which rules fired and whether ELSE would have been safer on another path.",
+          links: [{ label: "Education chapter", url: "training.html#educate" }],
+          imageUrl: "",
+          endHere: true,
+          actions: [
+            "Write which matched rule taught the main lesson",
+            "Re-run with Critical urgency + None yet and compare",
+            "Re-run Financial + Records + High confidence + Low gap"
+          ]
+        },
+
+        [nEndPursue]: {
+          id: nEndPursue,
+          title: "Pursue evidence",
+          kind: "outcome",
+          prompt: "Proceed with evidence collection",
+          guidance: "Standard operational close from the planning checkpoint. Execute the plan so evidence obtained answers the key question.",
+          links: [],
+          imageUrl: "",
+          endHere: true,
+          actions: [
+            "Schedule collection of missing evidence",
+            "Request records that close the gap",
+            "Update case diary with path summary and evidence plan"
+          ]
+        },
+
+        [nEndStrong]: {
+          id: nEndStrong,
+          title: "Strong pursue — records led",
+          kind: "outcome",
+          prompt: "High-confidence financial / records path",
+          guidance: "Reached via the records-strong AND cluster. Pursue remaining pulls with tight verification, not a broad escalate.",
+          links: [],
+          imageUrl: "",
+          endHere: true,
+          actions: [
+            "Complete targeted record requests",
+            "Reconcile figures to the key question",
+            "Close with a verification note"
+          ]
+        },
+
+        [nEndEscalate]: {
+          id: nEndEscalate,
+          title: "Escalate for evidence",
+          kind: "outcome",
+          prompt: "Escalate — secure robust evidence now",
+          guidance: "Reached via early None+Critical/Safety rules, integrity failure, High gap, or Complex+Solo overload. Escalate so the trail does not go cold.",
+          links: [],
+          imageUrl: "",
+          endHere: true,
+          actions: [
+            "Notify supervisor same day",
+            "Secure priority evidence immediately",
+            "Draft escalation brief from this path summary",
+            "Request surge capacity if complexity is high"
+          ]
+        },
+
+        [nEndLegal]: {
+          id: nEndLegal,
+          title: "Legal / privilege path",
+          kind: "outcome",
+          prompt: "Hold for legal direction",
+          guidance: "AND: Legal flag Yes + Medium gap. Do not push collection ahead of privilege advice.",
+          links: [],
+          imageUrl: "",
+          endHere: true,
+          actions: [
+            "Await written privilege / legal direction",
+            "Maintain hold on sensitive material",
+            "Re-open Flow after advice with updated evidence map"
+          ]
+        }
+      }
+    };
+  }
+
+  function createBlankWorkflow(name = "Untitled Flow") {
+    const startId = uid("n");
+    const endId = uid("n");
+    const t = now();
+    return {
+      id: uid("wf"),
+      name,
+      tags: [],
+      isDemo: false,
+      createdAt: t,
+      updatedAt: t,
+      startNodeId: startId,
+      nodes: {
+        [startId]: {
+          id: startId,
+          title: "Key question",
+          kind: "question",
+          prompt: "What is the key question for this step?",
+          guidance: "Frame steps so the path obtains relevant, robust evidence for the key question.",
+          links: [],
+          fieldType: "radio",
+          options: [
+            { value: "yes", label: "Yes" },
+            { value: "no", label: "No" }
+          ],
+          defaultValue: "yes",
+          defaultRoute: endId,
+          rules: [
+            { id: "r_blank_yes", join: "and", conditions: [{ stepId: startId, op: "eq", value: "yes" }], then: endId },
+            { id: "r_blank_no", join: "and", conditions: [{ stepId: startId, op: "eq", value: "no" }], then: endId }
+          ]
+        },
+        [endId]: {
+          id: endId,
+          title: "Evidence outcome",
+          kind: "outcome",
+          prompt: "Evidence plan complete",
+          guidance: "Summarise what evidence was obtained or still needed for the key question.",
+          links: [],
+          imageUrl: "",
+          endHere: true,
+          actions: ["Record evidence obtained", "Note remaining gaps against the key question"]
+        }
+      }
+    };
+  }
+
+  // ─── Storage ───────────────────────────────────────────
+  function defaultState() {
+    const demo = createDemoWorkflow();
+    return { workflows: { [demo.id]: demo }, runs: {}, version: 1 };
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        const s = defaultState();
+        saveState(s);
+        return s;
+      }
+      const parsed = JSON.parse(raw);
+      if (!parsed.workflows) parsed.workflows = {};
+      if (!parsed.runs) parsed.runs = {};
+      Object.values(parsed.workflows).forEach(migrateWorkflow);
+      if (!parsed.workflows[DEMO_ID]) {
+        parsed.workflows[DEMO_ID] = createDemoWorkflow();
+      }
+      saveState(parsed);
+      return parsed;
+    } catch {
+      const s = defaultState();
+      saveState(s);
+      return s;
+    }
+  }
+
+  function saveState(state) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  let state = loadState();
+
+  function getWorkflows() {
+    return Object.values(state.workflows).sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+  }
+  function getWorkflow(id) {
+    const wf = state.workflows[id] || null;
+    if (wf) migrateWorkflow(wf);
+    return wf;
+  }
+  function saveWorkflow(wf) {
+    migrateWorkflow(wf);
+    wf.updatedAt = now();
+    state.workflows[wf.id] = wf;
+    saveState(state);
+  }
+  function deleteWorkflow(id) {
+    delete state.workflows[id];
+    Object.keys(state.runs).forEach((rid) => {
+      if (state.runs[rid].workflowId === id) delete state.runs[rid];
+    });
+    saveState(state);
+  }
+  function getRuns(workflowId) {
+    return Object.values(state.runs)
+      .filter((r) => !workflowId || r.workflowId === workflowId)
+      .sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+  }
+  function getRun(id) { return state.runs[id] || null; }
+  function saveRun(run) {
+    run.updatedAt = now();
+    state.runs[run.id] = run;
+    saveState(state);
+  }
+  function deleteRun(id) {
+    delete state.runs[id];
+    saveState(state);
+  }
+  function resetDemo() {
+    state.workflows[DEMO_ID] = createDemoWorkflow();
+    Object.keys(state.runs).forEach((rid) => {
+      if (state.runs[rid].workflowId === DEMO_ID) delete state.runs[rid];
+    });
+    saveState(state);
+  }
+
+  // ─── Routing / validation helpers ──────────────────────
+  function nodeList(wf) {
+    return Object.values(wf.nodes || {});
+  }
+  function outcomeNodes(wf) {
+    return nodeList(wf).filter((n) => n.kind === "outcome");
+  }
+  function questionNodes(wf) {
+    return nodeList(wf).filter((n) => n.kind === "question");
+  }
+
+  /** Legacy info steps become continuing outcomes (same runner behaviour). */
+  function migrateInfoToOutcome(node) {
+    if (!node || node.kind !== "info") return node;
+    node.kind = "outcome";
+    node.endHere = false;
+    if (!Array.isArray(node.actions)) node.actions = [];
+    if (!Array.isArray(node.links)) node.links = [];
+    if (node.imageUrl == null) node.imageUrl = "";
+    return node;
+  }
+  function migrateWorkflowInfoNodes(wf) {
+    if (!wf || !wf.nodes) return wf;
+    Object.values(wf.nodes).forEach(migrateInfoToOutcome);
+    return wf;
+  }
+
+  function createRule(partial = {}) {
+    return {
+      id: partial.id || uid("r"),
+      join: partial.join === "or" ? "or" : "and",
+      conditions: Array.isArray(partial.conditions) ? partial.conditions : [],
+      then: partial.then || ""
+    };
+  }
+
+  function createCondition(stepId, op, value) {
+    return { stepId: stepId || "", op: op || "eq", value: value == null ? "" : value };
+  }
+
+  /** Convert legacy routes{} into ordered IF/THEN rules; clear routes afterward. */
+  function migrateQuestionRoutesToRules(node) {
+    if (!node || node.kind !== "question") return node;
+    if (Array.isArray(node.rules) && node.rules.length) {
+      if (node.routes) delete node.routes;
+      return node;
+    }
+    const routes = node.routes || {};
+    const rules = [];
+    if (node.fieldType === "slider" && node.slider && Array.isArray(node.slider.bands)) {
+      node.slider.bands.forEach((b) => {
+        const then = routes[b.routeKey];
+        if (!then) return;
+        rules.push(createRule({
+          join: "and",
+          conditions: [createCondition(node.id, "in_band", b.routeKey)],
+          then
+        }));
+      });
+    } else {
+      const op = node.fieldType === "checkbox" ? "includes" : "eq";
+      Object.entries(routes).forEach(([value, then]) => {
+        if (!then) return;
+        rules.push(createRule({
+          join: "and",
+          conditions: [createCondition(node.id, op, value)],
+          then
+        }));
+      });
+    }
+    node.rules = rules;
+    delete node.routes;
+    return node;
+  }
+
+  function migrateWorkflow(wf) {
+    if (!wf || !wf.nodes) return wf;
+    migrateWorkflowInfoNodes(wf);
+    Object.values(wf.nodes).forEach(migrateQuestionRoutesToRules);
+    return wf;
+  }
+
+  function ensureQuestionRules(node) {
+    if (!node || node.kind !== "question") return node;
+    migrateQuestionRoutesToRules(node);
+    if (!Array.isArray(node.rules)) node.rules = [];
+    return node;
+  }
+
+  function questionRouteTargets(node) {
+    ensureQuestionRules(node);
+    const targets = [];
+    if (node.defaultRoute) targets.push(node.defaultRoute);
+    (node.rules || []).forEach((r) => { if (r.then) targets.push(r.then); });
+    return targets;
+  }
+
+  function computeBfsStepIds(wf) {
+    const ordered = [];
+    const seen = new Set();
+    const q = [wf.startNodeId];
+    while (q.length) {
+      const id = q.shift();
+      if (!id || seen.has(id) || !wf.nodes[id]) continue;
+      seen.add(id);
+      ordered.push(id);
+      const n = wf.nodes[id];
+      if (n.kind === "outcome") normalizeOutcome(n);
+      if (n.kind === "outcome" && !isTerminalOutcome(n) && n.next) q.push(n.next);
+      else if (n.kind === "question") {
+        questionRouteTargets(n).forEach((t) => q.push(t));
+      }
+    }
+    Object.keys(wf.nodes || {}).forEach((id) => {
+      if (!seen.has(id)) ordered.push(id);
+    });
+    return ordered;
+  }
+
+  function ensureStepOrder(wf) {
+    if (!wf.stepOrder || !Array.isArray(wf.stepOrder) || !wf.stepOrder.length) {
+      wf.stepOrder = computeBfsStepIds(wf);
+      return wf.stepOrder;
+    }
+    const seen = new Set();
+    wf.stepOrder = wf.stepOrder.filter((id) => {
+      if (!wf.nodes[id] || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+    computeBfsStepIds(wf).forEach((id) => {
+      if (!seen.has(id)) {
+        wf.stepOrder.push(id);
+        seen.add(id);
+      }
+    });
+    return wf.stepOrder;
+  }
+
+  function getOrderedSteps(wf) {
+    return ensureStepOrder(wf).map((id) => wf.nodes[id]).filter(Boolean);
+  }
+  /** Terminal outcome ends the run; continuing outcomes go to `next`. Default endHere=true for older flows. */
+  function isTerminalOutcome(node) {
+    return !!(node && node.kind === "outcome" && node.endHere !== false);
+  }
+  function normalizeOutcome(node) {
+    if (!node || node.kind !== "outcome") return node;
+    if (node.endHere === undefined) node.endHere = true;
+    if (!Array.isArray(node.actions)) node.actions = [];
+    if (!Array.isArray(node.links)) node.links = [];
+    if (node.imageUrl == null) node.imageUrl = "";
+    if (node.endHere === false && !node.next) node.next = "";
+    return node;
+  }
+  function nodeLabel(n) {
+    if (!n) return "(missing)";
+    return n.title || n.prompt || n.id;
+  }
+  function optionLabel(node, value) {
+    if (!node) return String(value);
+    if (node.fieldType === "slider") {
+      const band = sliderBand(node, Number(value));
+      return band ? `${value} (${band.label})` : String(value);
+    }
+    if (node.fieldType === "checkbox" && Array.isArray(value)) {
+      return value.map((v) => {
+        const o = (node.options || []).find((x) => x.value === v);
+        return o ? o.label : v;
+      }).join(", ") || "(none)";
+    }
+    const o = (node.options || []).find((x) => x.value === value);
+    return o ? o.label : String(value);
+  }
+  function sliderBand(node, num) {
+    const bands = (node.slider && node.slider.bands) || [];
+    for (const b of bands) {
+      if (num <= b.max) return b;
+    }
+    return bands[bands.length - 1] || null;
+  }
+  function buildAnswersByStep(run, currentNodeId, currentValue) {
+    const map = {};
+    (run && run.answers ? run.answers : []).forEach((a) => {
+      map[a.nodeId] = a.value;
+    });
+    if (currentNodeId != null) map[currentNodeId] = currentValue;
+    return map;
+  }
+
+  function evalCondition(wf, cond, answers) {
+    if (!cond || !cond.stepId) return false;
+    const step = wf.nodes[cond.stepId];
+    if (!step || step.kind !== "question") return false;
+    if (!(cond.stepId in answers)) return false;
+    const ans = answers[cond.stepId];
+    const op = cond.op || "eq";
+    if (op === "in_band") {
+      const band = sliderBand(step, Number(ans));
+      return !!(band && band.routeKey === cond.value);
+    }
+    if (op === "includes") {
+      return Array.isArray(ans) && ans.indexOf(cond.value) !== -1;
+    }
+    if (op === "excludes") {
+      return Array.isArray(ans) && ans.indexOf(cond.value) === -1;
+    }
+    if (op === "neq") return ans !== cond.value;
+    return ans === cond.value;
+  }
+
+  function evalRule(wf, rule, answers) {
+    const conds = (rule && rule.conditions) || [];
+    if (!conds.length) return false;
+    if (rule.join === "or") return conds.some((c) => evalCondition(wf, c, answers));
+    return conds.every((c) => evalCondition(wf, c, answers));
+  }
+
+  function conditionOpLabel(op) {
+    if (op === "neq") return "≠";
+    if (op === "includes") return "includes";
+    if (op === "excludes") return "excludes";
+    if (op === "in_band") return "in band";
+    return "equals";
+  }
+
+  function formatConditionText(wf, cond) {
+    if (!cond) return "(empty)";
+    const step = wf.nodes[cond.stepId];
+    const stepName = nodeLabel(step);
+    let valLabel = cond.value == null ? "" : String(cond.value);
+    if (step) {
+      if (step.fieldType === "slider") {
+        const band = ((step.slider && step.slider.bands) || []).find((b) => b.routeKey === cond.value);
+        valLabel = band ? band.label : valLabel;
+      } else {
+        const o = (step.options || []).find((x) => x.value === cond.value);
+        if (o) valLabel = o.label;
+      }
+    }
+    return `${stepName} ${conditionOpLabel(cond.op)} ${valLabel}`;
+  }
+
+  function formatMatchedRuleReason(wf, rule, index) {
+    const join = (rule.join || "and").toUpperCase();
+    const conds = (rule.conditions || []).map((c) => formatConditionText(wf, c)).join(` ${join} `);
+    return `Matched rule ${index + 1}: ${conds || "(empty)"} → ${nodeLabel(wf.nodes[rule.then])}`;
+  }
+
+  /** Returns { nextId, reason } — reason explains which rule or ELSE chose the next step. */
+  function resolveRouteDetail(wf, node, run, value) {
+    if (!node) return { nextId: null, reason: "" };
+    migrateInfoToOutcome(node);
+    if (node.kind === "outcome") {
+      if (isTerminalOutcome(node)) return { nextId: null, reason: "" };
+      const nextId = node.next || null;
+      return {
+        nextId,
+        reason: nextId ? `Continue → ${nodeLabel(wf.nodes[nextId])}` : ""
+      };
+    }
+    ensureQuestionRules(node);
+    const answers = buildAnswersByStep(run, node.id, value);
+    for (let i = 0; i < (node.rules || []).length; i++) {
+      const rule = node.rules[i];
+      if (evalRule(wf, rule, answers) && rule.then) {
+        return { nextId: rule.then, reason: formatMatchedRuleReason(wf, rule, i) };
+      }
+    }
+    const nextId = node.defaultRoute || null;
+    return {
+      nextId,
+      reason: nextId ? `ELSE → ${nodeLabel(wf.nodes[nextId])}` : ""
+    };
+  }
+
+  function resolveRoute(wf, node, run, value) {
+    return resolveRouteDetail(wf, node, run, value).nextId;
+  }
+
+  function pathAnswerHtml(a) {
+    return `
+      <div class="history-item">
+        <div class="history-main">
+          <span>${escapeHtml(a.prompt)}</span>
+          <strong>${escapeHtml(a.display)}</strong>
+        </div>
+        ${a.routeReason ? `<span class="route-reason">${escapeHtml(a.routeReason)}</span>` : ""}
+      </div>`;
+  }
+
+  function pathListItemHtml(a) {
+    return `
+      <li>
+        <span class="q">${escapeHtml(a.prompt)}</span>
+        <span class="a">${escapeHtml(a.display)}</span>
+        ${a.routeReason ? `<span class="route-reason">${escapeHtml(a.routeReason)}</span>` : ""}
+      </li>`;
+  }
+
+  function estimateRemaining(wf, fromNodeId, visited = new Set()) {
+    if (!fromNodeId || visited.has(fromNodeId)) return 0;
+    const node = wf.nodes[fromNodeId];
+    if (!node) return 0;
+    migrateInfoToOutcome(node);
+    if (isTerminalOutcome(node)) return 0;
+    visited.add(fromNodeId);
+    const targets = new Set();
+    if (node.kind === "outcome" && !isTerminalOutcome(node)) {
+      if (node.next) targets.add(node.next);
+    } else if (node.kind === "question") {
+      questionRouteTargets(node).forEach((t) => targets.add(t));
+    }
+    let maxChild = 0;
+    targets.forEach((t) => {
+      maxChild = Math.max(maxChild, estimateRemaining(wf, t, new Set(visited)));
+    });
+    return 1 + maxChild;
+  }
+  function validateWorkflow(wf) {
+    migrateWorkflow(wf);
+    const errors = [];
+    if (!wf.name || !wf.name.trim()) errors.push("Flow needs a name.");
+    if (!wf.startNodeId || !wf.nodes[wf.startNodeId]) errors.push("Start step is missing.");
+    const reachable = new Set();
+    const queue = wf.startNodeId ? [wf.startNodeId] : [];
+    let terminalCount = 0;
+    while (queue.length) {
+      const id = queue.shift();
+      if (!id || reachable.has(id)) continue;
+      reachable.add(id);
+      const n = wf.nodes[id];
+      if (!n) { errors.push(`Missing node: ${id}`); continue; }
+      if (n.kind === "outcome") {
+        normalizeOutcome(n);
+        if (isTerminalOutcome(n)) {
+          terminalCount += 1;
+        } else {
+          if (!n.next) errors.push(`Outcome “${nodeLabel(n)}” is set to continue but has no next step.`);
+          else queue.push(n.next);
+        }
+      } else {
+        ensureQuestionRules(n);
+        if (!n.defaultRoute) errors.push(`“${nodeLabel(n)}” needs an ELSE (default next) step.`);
+        else queue.push(n.defaultRoute);
+        (n.rules || []).forEach((rule, ri) => {
+          if (!rule.then) {
+            errors.push(`“${nodeLabel(n)}” rule ${ri + 1} has no THEN step.`);
+          } else if (!wf.nodes[rule.then]) {
+            errors.push(`“${nodeLabel(n)}” rule ${ri + 1} THEN points to a missing step.`);
+          } else {
+            queue.push(rule.then);
+          }
+          const conds = rule.conditions || [];
+          if (!conds.length) {
+            errors.push(`“${nodeLabel(n)}” rule ${ri + 1} has no conditions.`);
+          }
+          conds.forEach((c, ci) => {
+            if (!c.stepId || !wf.nodes[c.stepId]) {
+              errors.push(`“${nodeLabel(n)}” rule ${ri + 1} condition ${ci + 1} has an invalid step.`);
+            } else if (wf.nodes[c.stepId].kind !== "question") {
+              errors.push(`“${nodeLabel(n)}” rule ${ri + 1} condition ${ci + 1} must reference a question step.`);
+            }
+            if (!c.op) errors.push(`“${nodeLabel(n)}” rule ${ri + 1} condition ${ci + 1} needs an operator.`);
+            if (c.value === undefined || c.value === "") {
+              errors.push(`“${nodeLabel(n)}” rule ${ri + 1} condition ${ci + 1} needs a value.`);
+            } else if (c.stepId && wf.nodes[c.stepId] && wf.nodes[c.stepId].kind === "question" && !conditionValueExists(wf, c)) {
+              errors.push(`“${nodeLabel(n)}” rule ${ri + 1} condition ${ci + 1} uses a missing option or band (“${c.value}”).`);
+            }
+          });
+        });
+      }
+    }
+    nodeList(wf).forEach((n) => {
+      if (!reachable.has(n.id)) errors.push(`Unreachable step: “${nodeLabel(n)}”.`);
+    });
+    if (!terminalCount) errors.push("Add at least one outcome with “End here” so a path can finish.");
+    return errors;
+  }
+
+  // ─── UI chrome ─────────────────────────────────────────
+  let toastTimer = null;
+  function toast(msg) {
+    const root = document.getElementById("toastRoot");
+    root.innerHTML = `<div class="toast">${escapeHtml(msg)}</div>`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { root.innerHTML = ""; }, 2600);
+  }
+  function closeModal() {
+    document.getElementById("modalRoot").innerHTML = "";
+  }
+  function showModal({ title, body, actions }) {
+    const root = document.getElementById("modalRoot");
+    root.innerHTML = `
+      <div class="modal-backdrop" data-close="1">
+        <div class="modal" role="dialog" aria-modal="true">
+          <h2>${escapeHtml(title)}</h2>
+          <div>${body}</div>
+          <div class="modal-actions" id="modalActions"></div>
+        </div>
+      </div>`;
+    root.querySelector(".modal-backdrop").addEventListener("click", (e) => {
+      if (e.target.dataset.close) closeModal();
+    });
+    const act = root.querySelector("#modalActions");
+    (actions || []).forEach((a) => {
+      const b = document.createElement("button");
+      b.className = "btn " + (a.className || "btn-neutral");
+      b.textContent = a.label;
+      b.addEventListener("click", () => a.onClick && a.onClick());
+      act.appendChild(b);
+    });
+  }
+  function setHeaderActions(html, bind) {
+    const el = document.getElementById("headerActions");
+    el.innerHTML = html;
+    if (bind) bind(el);
+  }
+
+  // ─── Router / app state ────────────────────────────────
+  const app = {
+    view: "library", // library | builder | runner
+    workflowId: null,
+    runId: null,
+    selectedNodeId: null,
+    draft: null, // builder draft
+    runnerValue: null,
+    showPresets: false,
+    testMode: false
+  };
+
+  function navigate(view, opts = {}) {
+    app.view = view;
+    Object.assign(app, opts);
+    render();
+  }
+
+  document.getElementById("brandHome").addEventListener("click", (e) => {
+    e.preventDefault();
+    app.draft = null;
+    app.testMode = false;
+    navigate("library");
+  });
+
+  // ─── Library ───────────────────────────────────────────
+  function libraryRunCardHtml(r) {
+    const wf = getWorkflow(r.workflowId);
+    const done = r.status === "completed";
+    return `
+      <div class="panel card">
+        <div>
+          <div class="card-title">${escapeHtml(runDisplayTitle(r))}</div>
+          <div class="card-meta">
+            <span class="tag ${done ? "ok" : "warn"}">${done ? "Completed" : "In progress"}</span>
+            ${r.isTest ? '<span class="tag">Test</span>' : ""}
+            <span>${escapeHtml(wf ? wf.name : "Missing flow")}</span>
+            ${r.caseNumber ? `<span>· Case ${escapeHtml(r.caseNumber)}</span>` : ""}
+            ${r.userName ? `<span>· ${escapeHtml(r.userName)}</span>` : ""}
+            <span>· ${escapeHtml(fmtDate(done ? (r.completedAt || r.updatedAt) : r.updatedAt))}</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-primary btn-sm" data-openrun="${r.id}">${done ? "View" : "Resume"}</button>
+          <button class="btn btn-neutral btn-sm" data-exprun="${r.id}">Export JSON</button>
+          <button class="btn btn-danger btn-sm" data-delrun="${r.id}">Delete</button>
+        </div>
+      </div>`;
+  }
+
+  function renderLibrary() {
+    document.querySelector(".main").classList.remove("wide");
+    const workflows = getWorkflows();
+    const allRuns = getRuns();
+    const openRuns = allRuns.filter((r) => r.status === "in_progress");
+    const doneRuns = allRuns.filter((r) => r.status === "completed");
+
+    setHeaderActions(`
+      <button class="btn btn-neutral btn-sm" id="btnImport">Import</button>
+      <button class="btn btn-neutral btn-sm" id="btnExportAll">Export all</button>
+      <button class="btn btn-primary btn-sm" id="btnNew">New Flow</button>
+      <input type="file" id="importFile" accept="application/json,.json" class="hidden" />
+    `, (el) => {
+      el.querySelector("#btnNew").onclick = () => {
+        const wf = createBlankWorkflow("Untitled Flow");
+        saveWorkflow(wf);
+        openBuilder(wf.id);
+      };
+      el.querySelector("#btnExportAll").onclick = () => {
+        downloadJson("clow-backup.json", {
+          type: "clow-backup",
+          version: 1,
+          exportedAt: now(),
+          workflows: state.workflows,
+          runs: state.runs
+        });
+        toast("Full backup downloaded");
+      };
+      el.querySelector("#btnImport").onclick = () => el.querySelector("#importFile").click();
+      el.querySelector("#importFile").onchange = (e) => {
+        const file = e.target.files && e.target.files[0];
+        e.target.value = "";
+        readJsonFile(file, importData);
+      };
+    });
+
+    let runsHtml = "";
+    if (openRuns.length) {
+      runsHtml += `
+        <div class="section-label">In progress</div>
+        <div class="card-list">${openRuns.map(libraryRunCardHtml).join("")}</div>`;
+    }
+    if (doneRuns.length) {
+      runsHtml += `
+        <div class="section-label">Completed runs</div>
+        <div class="card-list">${doneRuns.map(libraryRunCardHtml).join("")}</div>`;
+    }
+
+    const cards = workflows.map((wf) => {
+      const errs = validateWorkflow(wf);
+      const wfRuns = getRuns(wf.id);
+      const runCount = wfRuns.length;
+      const doneCount = wfRuns.filter((r) => r.status === "completed").length;
+      return `
+        <div class="panel card" data-wf="${wf.id}">
+          <div>
+            <div class="card-title">${escapeHtml(wf.name)}</div>
+            <div class="card-meta">
+              ${wf.isDemo ? '<span class="tag demo">Demo</span>' : ""}
+              ${(wf.tags || []).filter((t) => t !== "demo").map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join("")}
+              <span>${Object.keys(wf.nodes || {}).length} steps</span>
+              <span>· ${runCount} run${runCount === 1 ? "" : "s"}${doneCount ? ` (${doneCount} done)` : ""}</span>
+              <span>· Updated ${escapeHtml(fmtDate(wf.updatedAt))}</span>
+              ${errs.length ? `<span class="tag warn">${errs.length} issue${errs.length === 1 ? "" : "s"}</span>` : '<span class="tag ok">Ready</span>'}
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-primary btn-sm" data-run="${wf.id}">Run</button>
+            <button class="btn btn-secondary btn-sm" data-edit="${wf.id}">Edit</button>
+            <button class="btn btn-neutral btn-sm" data-dup="${wf.id}">Duplicate</button>
+            <button class="btn btn-neutral btn-sm" data-exp="${wf.id}">Export</button>
+            ${wf.isDemo
+              ? '<button class="btn btn-neutral btn-sm" data-resetdemo="1">Reset demo</button>'
+              : `<button class="btn btn-danger btn-sm" data-del="${wf.id}">Delete</button>`}
+          </div>
+        </div>`;
+    }).join("");
+
+    document.getElementById("app").innerHTML = `
+      <div class="page-title">
+        <div>
+          <h1>Flows</h1>
+          <p class="sub">Build Flows that steer investigation so relevant, robust evidence is obtained against key questions.</p>
+          <p class="sub" style="margin-top:6px;font-size:0.85rem">Saved in this browser · use Export all for a backup you can keep or move.</p>
+        </div>
+      </div>
+      <div class="train-promo">
+        <div>
+          <h2>Learn Clow</h2>
+          <p>Full guide: build investigation Flows and education/training Flows — library, builder, rules, and runner.</p>
+        </div>
+        <a class="btn btn-primary" href="training.html">Open training</a>
+      </div>
+      ${runsHtml}
+      <div class="section-label">Your Flows</div>
+      ${workflows.length
+        ? `<div class="card-list">${cards}</div>`
+        : `<div class="panel empty-state"><h2>No Flows yet</h2><p>Create a Flow that maps key questions to the evidence you need — or reset the demo to explore.</p></div>`}
+    `;
+
+    const root = document.getElementById("app");
+    root.querySelectorAll("[data-run]").forEach((b) => b.onclick = () => startRun(b.dataset.run));
+    root.querySelectorAll("[data-edit]").forEach((b) => b.onclick = () => openBuilder(b.dataset.edit));
+    root.querySelectorAll("[data-dup]").forEach((b) => b.onclick = () => duplicateWorkflow(b.dataset.dup));
+    root.querySelectorAll("[data-exp]").forEach((b) => b.onclick = () => {
+      const wf = getWorkflow(b.dataset.exp);
+      downloadJson(`clow-flow-${slug(wf.name)}.json`, { type: "clow-flow", version: 1, workflow: wf });
+      toast("Flow exported");
+    });
+    root.querySelectorAll("[data-del]").forEach((b) => b.onclick = () => {
+      const wf = getWorkflow(b.dataset.del);
+      showModal({
+        title: "Delete flow?",
+        body: `<p>Delete “${escapeHtml(wf.name)}” and its runs? This cannot be undone.</p>`,
+        actions: [
+          { label: "Cancel", className: "btn-neutral", onClick: closeModal },
+          { label: "Delete", className: "btn-danger", onClick: () => { deleteWorkflow(wf.id); closeModal(); toast("Deleted"); render(); } }
+        ]
+      });
+    });
+    root.querySelectorAll("[data-resetdemo]").forEach((b) => b.onclick = () => {
+      showModal({
+        title: "Reset demo?",
+        body: `<p>Replace the demo Flow with the stock sample and delete all demo runs? Your other Flows are not affected.</p>`,
+        actions: [
+          { label: "Cancel", className: "btn-neutral", onClick: closeModal },
+          {
+            label: "Reset demo",
+            className: "btn-danger",
+            onClick: () => {
+              resetDemo();
+              closeModal();
+              toast("Demo reset");
+              render();
+            }
+          }
+        ]
+      });
+    });
+    root.querySelectorAll("[data-openrun]").forEach((b) => b.onclick = () => openRunner(b.dataset.openrun));
+    root.querySelectorAll("[data-exprun]").forEach((b) => b.onclick = () => {
+      const run = getRun(b.dataset.exprun);
+      const wf = run && getWorkflow(run.workflowId);
+      if (!run || !wf) {
+        toast("Run or Flow missing");
+        return;
+      }
+      exportRunJson(run, wf);
+    });
+    root.querySelectorAll("[data-delrun]").forEach((b) => b.onclick = () => {
+      const run = getRun(b.dataset.delrun);
+      const title = run ? runDisplayTitle(run) : "this run";
+      showModal({
+        title: "Delete run?",
+        body: `<p>Delete “${escapeHtml(title)}”? This cannot be undone.</p>`,
+        actions: [
+          { label: "Cancel", className: "btn-neutral", onClick: closeModal },
+          {
+            label: "Delete",
+            className: "btn-danger",
+            onClick: () => {
+              deleteRun(b.dataset.delrun);
+              closeModal();
+              toast("Run deleted");
+              render();
+            }
+          }
+        ]
+      });
+    });
+  }
+
+  function slug(s) {
+    return String(s || "flow").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+  }
+
+  function slugifyOptionPart(text) {
+    return String(text || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_|_$/g, "");
+  }
+
+  /** e.g. title "Case Study" + label "202" → case_study_202 */
+  function composeOptionValue(node, label) {
+    const titlePart = slugifyOptionPart(node && node.title) || "step";
+    const labelPart = slugifyOptionPart(label) || "option";
+    return titlePart + "_" + labelPart;
+  }
+
+  function uniqueOptionValue(node, base, ignoreIndex = -1) {
+    let v = base || "option";
+    let n = 2;
+    const isTaken = (candidate) =>
+      (node.options || []).some((o, i) => i !== ignoreIndex && o.value === candidate);
+    while (isTaken(v)) {
+      v = (base || "option") + "_" + n;
+      n += 1;
+    }
+    return v;
+  }
+
+  /** Rewrite every condition (and matching defaultValue) that uses stepId + oldVal → newVal. */
+  function cascadeAnswerValue(wf, stepId, oldVal, newVal) {
+    if (!wf || !stepId || oldVal == null || newVal == null || oldVal === newVal) return 0;
+    let n = 0;
+    Object.values(wf.nodes || {}).forEach((node) => {
+      if (!node || node.kind !== "question") return;
+      ensureQuestionRules(node);
+      (node.rules || []).forEach((r) => {
+        (r.conditions || []).forEach((c) => {
+          if (c.stepId === stepId && c.value === oldVal) {
+            c.value = newVal;
+            n += 1;
+          }
+        });
+      });
+      if (node.id === stepId && node.defaultValue === oldVal) {
+        node.defaultValue = newVal;
+      }
+    });
+    return n;
+  }
+
+  /** Remove conditions (and empty rules) that reference stepId + value. */
+  function removeAnswerValueRefs(wf, stepId, value) {
+    let removedConds = 0;
+    let removedRules = 0;
+    Object.values(wf.nodes || {}).forEach((node) => {
+      if (!node || node.kind !== "question") return;
+      ensureQuestionRules(node);
+      const kept = [];
+      (node.rules || []).forEach((r) => {
+        const before = (r.conditions || []).length;
+        r.conditions = (r.conditions || []).filter((c) => {
+          if (c.stepId === stepId && c.value === value) {
+            removedConds += 1;
+            return false;
+          }
+          return true;
+        });
+        if (r.conditions.length) kept.push(r);
+        else if (before) removedRules += 1;
+      });
+      node.rules = kept;
+    });
+    return { removedConds, removedRules };
+  }
+
+  function countAnswerValueRefs(wf, stepId, value) {
+    let n = 0;
+    Object.values(wf.nodes || {}).forEach((node) => {
+      if (!node || node.kind !== "question") return;
+      (node.rules || []).forEach((r) => {
+        (r.conditions || []).forEach((c) => {
+          if (c.stepId === stepId && c.value === value) n += 1;
+        });
+      });
+    });
+    return n;
+  }
+
+  function conditionValueExists(wf, cond) {
+    if (!cond || !cond.stepId || !wf || !wf.nodes) return false;
+    if (cond.value === undefined || cond.value === "") return false;
+    const step = wf.nodes[cond.stepId];
+    if (!step || step.kind !== "question") return false;
+    if (step.fieldType === "slider") {
+      return ((step.slider && step.slider.bands) || []).some((b) => b.routeKey === cond.value);
+    }
+    return (step.options || []).some((o) => o.value === cond.value);
+  }
+
+  function setOptionValue(node, index, newValue, wf) {
+    const opt = node.options[index];
+    if (!opt) return 0;
+    const old = opt.value;
+    let neu = String(newValue || "").trim();
+    if (!neu) neu = composeOptionValue(node, opt.label);
+    neu = uniqueOptionValue(node, neu, index);
+    if (old === neu) {
+      opt.value = neu;
+      return 0;
+    }
+    opt.value = neu;
+    const flow = wf || app.draft;
+    return cascadeAnswerValue(flow, node.id, old, neu);
+  }
+
+  function setBandRouteKey(node, index, newKey, wf) {
+    if (!node.slider || !Array.isArray(node.slider.bands)) return 0;
+    const band = node.slider.bands[index];
+    if (!band) return 0;
+    const old = band.routeKey;
+    let neu = slugifyOptionPart(newKey) || ("band_" + (index + 1));
+    const taken = node.slider.bands.some((b, i) => i !== index && b.routeKey === neu);
+    if (taken) neu = neu + "_" + (index + 1);
+    if (old === neu) {
+      band.routeKey = neu;
+      return 0;
+    }
+    band.routeKey = neu;
+    return cascadeAnswerValue(wf || app.draft, node.id, old, neu);
+  }
+
+  /** Extract a Flow object from export/backup/raw shapes, or null. */
+  function extractImportedFlow(data) {
+    if (!data || typeof data !== "object") return null;
+    if ((data.type === "clow-flow" || data.type === "clow-workflow") && data.workflow) {
+      return deepClone(data.workflow);
+    }
+    if (data.id && data.nodes && data.startNodeId) {
+      return deepClone(data);
+    }
+    return null;
+  }
+
+  function normalizeImportedFlow(wf) {
+    if (!wf) return null;
+    wf.isDemo = false;
+    wf.tags = (wf.tags || []).filter((t) => t !== "demo");
+    migrateWorkflow(wf);
+    nodeList(wf).forEach((n) => {
+      if (n.kind === "outcome") normalizeOutcome(n);
+      if (!Array.isArray(n.links)) n.links = [];
+    });
+    ensureStepOrder(wf);
+    wf.updatedAt = now();
+    return wf;
+  }
+
+  function importFlowAsNew(imported) {
+    const wf = normalizeImportedFlow(imported);
+    if (!wf) return null;
+    if (!wf.id || state.workflows[wf.id]) wf.id = uid("wf");
+    if (!wf.createdAt) wf.createdAt = now();
+    saveWorkflow(wf);
+    return wf;
+  }
+
+  /** Replace the builder draft with imported Flow content; keeps current id. */
+  function replaceBuilderDraftWithFlow(imported) {
+    if (!app.draft) return false;
+    const src = normalizeImportedFlow(imported);
+    if (!src) return false;
+    const keepId = app.draft.id;
+    const keepCreated = app.draft.createdAt;
+    app.draft = src;
+    app.draft.id = keepId;
+    app.draft.createdAt = keepCreated || now();
+    app.draft.isDemo = false;
+    app.selectedNodeId = app.draft.startNodeId;
+    app.workflowId = keepId;
+    return true;
+  }
+
+  function promptBuilderFlowImport(data) {
+    if (data && data.type === "clow-run") {
+      toast("That file is a path/run export — use Library → Import for runs");
+      return;
+    }
+    if (data && data.type === "clow-backup") {
+      toast("Backup files import from the Library");
+      return;
+    }
+    const imported = extractImportedFlow(data);
+    if (!imported) {
+      toast("Unrecognised Clow Flow file");
+      return;
+    }
+    const label = imported.name || "Imported Flow";
+    showModal({
+      title: "Import Flow?",
+      body: `<p>Import “${escapeHtml(label)}” into the builder?</p>
+        <p class="muted">Replace updates this Flow’s draft (Save to keep). Add as new creates a separate Flow.</p>`,
+      actions: [
+        { label: "Cancel", className: "btn-neutral", onClick: closeModal },
+        {
+          label: "Add as new",
+          className: "btn-secondary",
+          onClick: () => {
+            closeModal();
+            const wf = importFlowAsNew(imported);
+            if (!wf) return;
+            toast("Flow imported as new");
+            openBuilder(wf.id);
+          }
+        },
+        {
+          label: "Replace draft",
+          className: "btn-primary",
+          onClick: () => {
+            closeModal();
+            if (!replaceBuilderDraftWithFlow(imported)) {
+              toast("Import failed");
+              return;
+            }
+            toast("Draft replaced — Save to keep");
+            renderBuilder();
+          }
+        }
+      ]
+    });
+  }
+
+  function readJsonFile(file, onData) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        onData(JSON.parse(reader.result));
+      } catch {
+        toast("Invalid JSON file");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function importData(data) {
+    if (data.type === "clow-backup" && data.workflows) {
+      Object.values(data.workflows).forEach((wf) => { state.workflows[wf.id] = wf; });
+      if (data.runs) Object.values(data.runs).forEach((r) => { state.runs[r.id] = r; });
+      saveState(state);
+      toast("Backup imported");
+      render();
+      return;
+    }
+    const flow = extractImportedFlow(data);
+    if (flow) {
+      const wf = importFlowAsNew(flow);
+      if (!wf) {
+        toast("Unrecognised Clow file");
+        return;
+      }
+      toast("Flow imported");
+      render();
+      return;
+    }
+    if (data.type === "clow-run" && data.run) {
+      const run = data.run;
+      if (state.runs[run.id]) run.id = uid("run");
+      saveRun(run);
+      toast("Run imported");
+      render();
+      return;
+    }
+    toast("Unrecognised Clow file");
+  }
+
+  function duplicateWorkflow(id) {
+    const src = getWorkflow(id);
+    if (!src) return;
+    const copy = deepClone(src);
+    copy.id = uid("wf");
+    copy.name = src.name + " (copy)";
+    copy.isDemo = false;
+    copy.tags = (src.tags || []).filter((t) => t !== "demo");
+    copy.createdAt = now();
+    copy.updatedAt = now();
+    saveWorkflow(copy);
+    toast("Duplicated");
+    openBuilder(copy.id);
+  }
+
+  // ─── Builder ───────────────────────────────────────────
+  function openBuilder(workflowId) {
+    const wf = getWorkflow(workflowId);
+    if (!wf) return;
+    app.draft = deepClone(wf);
+    migrateWorkflow(app.draft);
+    nodeList(app.draft).forEach((n) => {
+      if (n.kind === "outcome") normalizeOutcome(n);
+      if (!Array.isArray(n.links)) n.links = n.links || [];
+    });
+    ensureStepOrder(app.draft);
+    app.selectedNodeId = wf.startNodeId;
+    app.showPresets = false;
+    app.testMode = false;
+    navigate("builder", { workflowId });
+  }
+
+  function renderBuilder() {
+    document.querySelector(".main").classList.add("wide");
+    const wf = app.draft;
+    if (!wf) { navigate("library"); return; }
+
+    setHeaderActions(`
+      <button class="btn btn-ghost btn-sm" id="btnBackLib">Library</button>
+      <button class="btn btn-neutral btn-sm" id="btnImportFlow">Import</button>
+      <button class="btn btn-neutral btn-sm" id="btnExportFlow">Export</button>
+      <button class="btn btn-neutral btn-sm" id="btnValidate">Validate</button>
+      <button class="btn btn-secondary btn-sm" id="btnTestRun">Test run</button>
+      <button class="btn btn-primary btn-sm" id="btnSave">Save</button>
+      <input type="file" id="builderImportFile" accept="application/json,.json" class="hidden" />
+    `, (el) => {
+      el.querySelector("#btnBackLib").onclick = () => {
+        showModal({
+          title: "Leave builder?",
+          body: "<p>Unsaved changes will be lost if you haven’t saved.</p>",
+          actions: [
+            { label: "Stay", className: "btn-neutral", onClick: closeModal },
+            { label: "Leave", className: "btn-secondary", onClick: () => { closeModal(); app.draft = null; navigate("library"); } }
+          ]
+        });
+      };
+      el.querySelector("#btnImportFlow").onclick = () => el.querySelector("#builderImportFile").click();
+      el.querySelector("#builderImportFile").onchange = (e) => {
+        const file = e.target.files && e.target.files[0];
+        e.target.value = "";
+        readJsonFile(file, promptBuilderFlowImport);
+      };
+      el.querySelector("#btnExportFlow").onclick = () => {
+        downloadJson(`clow-flow-${slug(wf.name)}.json`, {
+          type: "clow-flow",
+          version: 1,
+          workflow: deepClone(wf)
+        });
+        toast("Flow exported");
+      };
+      el.querySelector("#btnValidate").onclick = () => {
+        const errs = validateWorkflow(wf);
+        if (!errs.length) toast("Looks good — no issues");
+        else showModal({
+          title: "Validation",
+          body: `<ul>${errs.map((e) => `<li>${escapeHtml(e)}</li>`).join("")}</ul>`,
+          actions: [{ label: "Close", className: "btn-primary", onClick: closeModal }]
+        });
+      };
+      el.querySelector("#btnTestRun").onclick = () => {
+        const errs = validateWorkflow(wf);
+        if (errs.length) {
+          showModal({
+            title: "Fix before test run",
+            body: `<ul>${errs.map((e) => `<li>${escapeHtml(e)}</li>`).join("")}</ul>`,
+            actions: [{ label: "Close", className: "btn-primary", onClick: closeModal }]
+          });
+          return;
+        }
+        saveWorkflow(deepClone(wf));
+        app.testMode = true;
+        startRun(wf.id, { test: true });
+      };
+      el.querySelector("#btnSave").onclick = () => {
+        saveWorkflow(deepClone(wf));
+        toast("Saved");
+      };
+    });
+
+    const ordered = getOrderedSteps(wf);
+
+    const sel = wf.nodes[app.selectedNodeId] || ordered[0];
+    if (sel && app.selectedNodeId !== sel.id) app.selectedNodeId = sel.id;
+
+    document.getElementById("app").innerHTML = `
+      <div class="page-title">
+        <div style="flex:1;min-width:200px">
+          <label class="field-label">Flow name</label>
+          <input type="text" id="wfName" value="${escapeHtml(wf.name)}" />
+        </div>
+        <div style="flex:1;min-width:180px">
+          <label class="field-label">Tags (comma-separated)</label>
+          <input type="text" id="wfTags" value="${escapeHtml((wf.tags || []).filter((t) => t !== "demo").join(", "))}" />
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-secondary btn-sm" id="btnAddStep">Add step</button>
+        <div class="preset-menu${app.showPresets ? " is-open" : ""}" data-dropdown>
+          <button type="button" class="btn btn-neutral btn-sm" id="btnPresets" data-dropdown-toggle aria-haspopup="true" aria-expanded="${app.showPresets ? "true" : "false"}">Quick-add presets ▾</button>
+          <div class="preset-dropdown ${app.showPresets ? "" : "hidden"}" id="presetDrop" data-dropdown-panel role="menu">
+            <button type="button" data-preset="yesno">Yes / No (radio)</button>
+            <button type="button" data-preset="toggle">On / Off toggle</button>
+            <button type="button" data-preset="cycle">Severity cycle</button>
+            <button type="button" data-preset="checkpoint">Checkpoint (continue)</button>
+            <button type="button" data-preset="outcome">Outcome (end here)</button>
+          </div>
+        </div>
+        <button class="btn btn-neutral btn-sm" id="btnSetStart" ${sel && sel.kind === "outcome" ? "disabled" : ""}>Set as start</button>
+        <button class="btn btn-danger btn-sm" id="btnDelStep" ${sel && sel.id === wf.startNodeId ? "disabled" : ""}>Delete step</button>
+      </div>
+      <div class="builder-layout">
+        <aside class="panel builder-side">
+          <div class="panel-head"><h2>Steps</h2></div>
+          <p class="field-hint" style="padding:0 12px;margin:8px 0 0">Drag ⋮⋮ to reorder the list (does not change routing).</p>
+          <ul class="step-list" id="stepList">
+            ${ordered.map((n, i) => `
+              <li class="step-li ${n.id === app.selectedNodeId ? "active" : ""}" data-stepid="${n.id}" data-stepindex="${i}">
+                <span class="drag-handle" draggable="true" title="Drag to reorder" aria-label="Drag to reorder">⋮⋮</span>
+                <button type="button" class="step-item ${n.id === app.selectedNodeId ? "active" : ""}" data-sel="${n.id}">
+                  <span class="step-badge ${n.id === wf.startNodeId ? "start" : ""}">${n.kind === "outcome" ? (isTerminalOutcome(n) ? "●" : "→") : "?"}</span>
+                  <span>
+                    <div class="si-title">${escapeHtml(n.title || "Untitled")}</div>
+                    <div class="si-meta">${escapeHtml(n.kind)}${n.kind === "question" ? " · " + escapeHtml(n.fieldType || "") : ""}${n.kind === "outcome" ? (isTerminalOutcome(n) ? " · end" : " · continue") : ""}${n.id === wf.startNodeId ? " · start" : ""}</div>
+                  </span>
+                </button>
+              </li>`).join("")}
+          </ul>
+        </aside>
+        <section class="panel builder-main">
+          <div class="panel-head"><h2>Edit step</h2></div>
+          <div class="panel-body" id="nodeEditor"></div>
+        </section>
+      </div>
+    `;
+
+    document.getElementById("wfName").oninput = (e) => { wf.name = e.target.value; };
+    document.getElementById("wfTags").oninput = (e) => {
+      const tags = e.target.value.split(",").map((t) => t.trim()).filter(Boolean);
+      if (wf.isDemo && !tags.includes("demo")) tags.unshift("demo");
+      wf.tags = tags;
+    };
+    document.getElementById("btnAddStep").onclick = () => addStep("question");
+    document.getElementById("btnPresets").onclick = (e) => {
+      e.stopPropagation();
+      const menu = e.currentTarget.closest("[data-dropdown]");
+      const panel = document.getElementById("presetDrop");
+      const willOpen = panel.classList.contains("hidden");
+      closeAllDropdowns();
+      if (willOpen) openDropdown(menu);
+    };
+    document.getElementById("presetDrop").onclick = (e) => {
+      const p = e.target.dataset.preset;
+      if (!p) return;
+      closeAllDropdowns();
+      addPreset(p);
+    };
+    document.getElementById("btnSetStart").onclick = () => {
+      if (!sel || sel.kind === "outcome") return;
+      wf.startNodeId = sel.id;
+      toast("Start step set");
+      renderBuilder();
+    };
+    document.getElementById("btnDelStep").onclick = () => {
+      if (!sel || sel.id === wf.startNodeId) return;
+      delete wf.nodes[sel.id];
+      if (Array.isArray(wf.stepOrder)) {
+        wf.stepOrder = wf.stepOrder.filter((id) => id !== sel.id);
+      }
+      // clear dangling routes / rules
+      nodeList(wf).forEach((n) => {
+        if (n.next === sel.id) n.next = wf.startNodeId;
+        if (n.defaultRoute === sel.id) n.defaultRoute = wf.startNodeId;
+        if (Array.isArray(n.rules)) {
+          n.rules.forEach((r) => {
+            if (r.then === sel.id) r.then = n.defaultRoute || wf.startNodeId;
+            (r.conditions || []).forEach((c) => {
+              if (c.stepId === sel.id) c.stepId = "";
+            });
+          });
+        }
+      });
+      app.selectedNodeId = wf.startNodeId;
+      renderBuilder();
+    };
+    document.querySelectorAll("[data-sel]").forEach((b) => {
+      b.onclick = () => { app.selectedNodeId = b.dataset.sel; renderBuilder(); };
+    });
+    bindStepDragDrop(document.getElementById("stepList"), wf);
+
+    renderNodeEditor(sel);
+  }
+
+  function addStep(kind) {
+    const wf = app.draft;
+    const id = uid("n");
+    const firstOutcome = outcomeNodes(wf)[0];
+    const fallback = firstOutcome ? firstOutcome.id : wf.startNodeId;
+    let node;
+    if (kind === "outcome") {
+      node = {
+        id, title: "Outcome", kind: "outcome",
+        prompt: "Outcome", guidance: "", links: [], imageUrl: "",
+        endHere: true, actions: ["Next action"]
+      };
+    } else {
+      node = {
+        id, title: "New step", kind: "question",
+        prompt: "Question?", guidance: "", links: [],
+        fieldType: "radio",
+        options: [{ value: "a", label: "Option A" }, { value: "b", label: "Option B" }],
+        defaultValue: "a",
+        defaultRoute: fallback,
+        rules: []
+      };
+      node.rules = [
+        createRule({ conditions: [createCondition(id, "eq", "a")], then: fallback }),
+        createRule({ conditions: [createCondition(id, "eq", "b")], then: fallback })
+      ];
+    }
+    wf.nodes[id] = node;
+    ensureStepOrder(wf);
+    if (!wf.stepOrder.includes(id)) wf.stepOrder.push(id);
+    app.selectedNodeId = id;
+    renderBuilder();
+  }
+
+  function addPreset(type) {
+    const wf = app.draft;
+    const id = uid("n");
+    const firstOutcome = outcomeNodes(wf)[0];
+    const fallback = firstOutcome ? firstOutcome.id : wf.startNodeId;
+    let node;
+    if (type === "yesno") {
+      node = {
+        id, title: "Yes / No", kind: "question",
+        prompt: "Yes or no?", guidance: "", links: [],
+        fieldType: "radio",
+        options: [{ value: "yes", label: "Yes" }, { value: "no", label: "No" }],
+        defaultValue: "yes",
+        defaultRoute: fallback,
+        rules: [
+          createRule({ conditions: [createCondition(id, "eq", "yes")], then: fallback }),
+          createRule({ conditions: [createCondition(id, "eq", "no")], then: fallback })
+        ]
+      };
+    } else if (type === "toggle") {
+      node = {
+        id, title: "Toggle", kind: "question",
+        prompt: "Is this true?", guidance: "", links: [],
+        fieldType: "toggle",
+        options: [{ value: "yes", label: "Yes" }, { value: "no", label: "No" }],
+        defaultValue: "no",
+        defaultRoute: fallback,
+        rules: [
+          createRule({ conditions: [createCondition(id, "eq", "yes")], then: fallback }),
+          createRule({ conditions: [createCondition(id, "eq", "no")], then: fallback })
+        ]
+      };
+    } else if (type === "cycle") {
+      node = {
+        id, title: "Severity", kind: "question",
+        prompt: "Severity?", guidance: "Tap to cycle.", links: [],
+        fieldType: "cycle",
+        options: [
+          { value: "low", label: "Low" },
+          { value: "medium", label: "Medium" },
+          { value: "high", label: "High" }
+        ],
+        defaultValue: "low",
+        defaultRoute: fallback,
+        rules: [
+          createRule({ conditions: [createCondition(id, "eq", "low")], then: fallback }),
+          createRule({ conditions: [createCondition(id, "eq", "medium")], then: fallback }),
+          createRule({ conditions: [createCondition(id, "eq", "high")], then: fallback })
+        ]
+      };
+    } else if (type === "checkpoint" || type === "info") {
+      node = {
+        id, title: "Checkpoint", kind: "outcome",
+        prompt: "Review this checkpoint", guidance: "Evidence or Flow note, then continue.",
+        links: [], imageUrl: "", endHere: false, actions: [], next: fallback
+      };
+    } else {
+      node = {
+        id, title: "Outcome", kind: "outcome",
+        prompt: "Outcome", guidance: "", links: [], imageUrl: "",
+        endHere: true, actions: ["Action to take"]
+      };
+    }
+    wf.nodes[id] = node;
+    ensureStepOrder(wf);
+    if (!wf.stepOrder.includes(id)) wf.stepOrder.push(id);
+    app.selectedNodeId = id;
+    renderBuilder();
+  }
+
+  function targetOptionsHtml(wf, selected) {
+    const opts = getOrderedSteps(wf)
+      .filter((n) => n.id !== app.selectedNodeId)
+      .map((n) => `<option value="${n.id}" ${n.id === selected ? "selected" : ""}>${escapeHtml(nodeLabel(n))} (${n.kind})</option>`)
+      .join("");
+    return `<option value="">— select —</option>${opts}`;
+  }
+
+  function questionStepOptionsHtml(wf, selected, includeCurrent) {
+    const opts = getOrderedSteps(wf)
+      .filter((n) => n.kind === "question")
+      .filter((n) => includeCurrent || n.id !== app.selectedNodeId)
+      .map((n) => `<option value="${n.id}" ${n.id === selected ? "selected" : ""}>${escapeHtml(nodeLabel(n))}</option>`)
+      .join("");
+    return `<option value="">— step —</option>${opts}`;
+  }
+
+  function conditionOpsForStep(step) {
+    if (!step) return [["eq", "equals"], ["neq", "not equals"]];
+    if (step.fieldType === "checkbox") {
+      return [["includes", "includes"], ["excludes", "excludes"]];
+    }
+    if (step.fieldType === "slider") {
+      return [["in_band", "in band"], ["eq", "equals"], ["neq", "not equals"]];
+    }
+    return [["eq", "equals"], ["neq", "not equals"]];
+  }
+
+  function conditionValueOptionsHtml(wf, stepId, selected) {
+    const step = wf.nodes[stepId];
+    if (!step || step.kind !== "question") return `<option value="">— value —</option>`;
+    let html = "";
+    let known = false;
+    if (step.fieldType === "slider") {
+      const bands = (step.slider && step.slider.bands) || [];
+      known = bands.some((b) => b.routeKey === selected);
+      html = `<option value="">— band —</option>` + bands.map((b) =>
+        `<option value="${escapeHtml(b.routeKey)}" ${b.routeKey === selected ? "selected" : ""}>${escapeHtml(b.label)} (≤${b.max})</option>`
+      ).join("");
+    } else {
+      known = (step.options || []).some((o) => o.value === selected);
+      html = `<option value="">— value —</option>` + (step.options || []).map((o) =>
+        `<option value="${escapeHtml(o.value)}" ${o.value === selected ? "selected" : ""}>${escapeHtml(o.label)}</option>`
+      ).join("");
+    }
+    if (selected && !known) {
+      html += `<option value="${escapeHtml(String(selected))}" selected>(missing) ${escapeHtml(String(selected))}</option>`;
+    }
+    return html;
+  }
+
+  function renderRulesEditorHtml(wf, node) {
+    ensureQuestionRules(node);
+    const rules = node.rules || [];
+    return `
+      <div class="form-row" id="rulesSection">
+        <label class="field-label">Routing rules (IF / THEN)</label>
+        <p class="field-hint">First matching rule wins. Conditions can use this step or earlier answers. Combine with AND/OR. ELSE is the default next below.</p>
+        <div id="rulesEditor">
+          ${rules.map((rule, ri) => `
+            <div class="rule-card" data-ruleindex="${ri}">
+              <div class="rule-head">
+                <div class="rule-head-left">
+                  <span class="drag-handle" draggable="true" title="Drag to reorder" aria-label="Drag to reorder">⋮⋮</span>
+                  <strong>Rule ${ri + 1}</strong>
+                  <div class="segmented" data-rulejoin="${ri}">
+                    <button type="button" data-join="and" class="${rule.join !== "or" ? "active" : ""}">AND</button>
+                    <button type="button" data-join="or" class="${rule.join === "or" ? "active" : ""}">OR</button>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-icon btn-danger-ghost" data-delrule="${ri}" title="Delete rule" aria-label="Delete rule">
+                  <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                </button>
+              </div>
+              ${(rule.conditions || []).map((c, ci) => {
+                const step = wf.nodes[c.stepId];
+                const ops = conditionOpsForStep(step);
+                const orphan = c.stepId && step && step.kind === "question" && c.value !== undefined && c.value !== "" && !conditionValueExists(wf, c);
+                return `
+                  <div class="cond-row${orphan ? " cond-invalid" : ""}">
+                    <select data-cond-step="${ri}:${ci}">${questionStepOptionsHtml(wf, c.stepId, true)}</select>
+                    <select data-cond-op="${ri}:${ci}">
+                      ${ops.map(([v, lab]) => `<option value="${v}" ${c.op === v ? "selected" : ""}>${lab}</option>`).join("")}
+                    </select>
+                    <select data-cond-val="${ri}:${ci}">${conditionValueOptionsHtml(wf, c.stepId, c.value)}</select>
+                    <button type="button" class="btn btn-ghost btn-sm" data-delcond="${ri}:${ci}">Remove</button>
+                    ${orphan ? `<span class="cond-invalid-hint">Missing option or band “${escapeHtml(String(c.value))}” — pick a valid value or fix the referenced step.</span>` : ""}
+                  </div>`;
+              }).join("")}
+              <button type="button" class="btn btn-neutral btn-sm" data-addcond="${ri}">Add condition</button>
+              <div class="rule-then">
+                <label class="field-label">THEN go to</label>
+                <select data-rulethen="${ri}">${targetOptionsHtml(wf, rule.then)}</select>
+              </div>
+            </div>`).join("") || `<p class="muted">No rules yet — add one, or use “Make rule” on an option.</p>`}
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnAddRule" style="margin-top:8px">Add rule</button>
+      </div>
+      <div class="form-row">
+        <label class="field-label">ELSE (default next)</label>
+        <select id="defaultRoute">${targetOptionsHtml(wf, node.defaultRoute)}</select>
+        <p class="field-hint">Used when no IF rule matches.</p>
+      </div>`;
+  }
+
+  function renderNodeEditor(node) {
+    const host = document.getElementById("nodeEditor");
+    const wf = app.draft;
+    if (!node || !host) {
+      if (host) host.innerHTML = "<p class='muted'>Select a step.</p>";
+      return;
+    }
+
+    migrateInfoToOutcome(node);
+    const kindOpts = ["question", "outcome"].map((k) =>
+      `<option value="${k}" ${node.kind === k ? "selected" : ""}>${k}</option>`).join("");
+
+    let extra = "";
+    if (node.kind === "outcome") {
+      normalizeOutcome(node);
+      const actions = node.actions || [];
+      const endHere = isTerminalOutcome(node);
+      extra = `
+        <div class="form-row">
+          <label class="field-label">After this outcome</label>
+          <div class="segmented" id="endHereToggle">
+            <button type="button" data-endhere="true" class="${endHere ? "active" : ""}">End here</button>
+            <button type="button" data-endhere="false" class="${!endHere ? "active" : ""}">Continue to next step</button>
+          </div>
+          <p class="field-hint">End here closes with a path and evidence actions. Continue is a checkpoint (evidence plan, links, image) before the next step.</p>
+        </div>
+        ${!endHere ? `
+          <div class="form-row">
+            <label class="field-label">Next step</label>
+            <select id="outcomeNext">${targetOptionsHtml(wf, node.next)}</select>
+          </div>` : ""}
+        <div class="form-row">
+          <label class="field-label">Image URL (optional)</label>
+          <input type="url" id="outcomeImage" value="${escapeHtml(node.imageUrl || "")}" placeholder="https://…" />
+          <p class="field-hint">Reference image for this evidence step (full https URL).</p>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Evidence / actions to take</label>
+          <div class="action-list" id="actionList">
+            ${actions.map((a, i) => `
+              <div class="action-row">
+                <input type="text" data-action="${i}" value="${escapeHtml(a)}" />
+                <button class="btn btn-ghost btn-sm" data-delaction="${i}">Remove</button>
+              </div>`).join("")}
+          </div>
+          <button class="btn btn-neutral btn-sm" id="btnAddAction" style="margin-top:8px">Add action</button>
+        </div>`;
+    } else {
+      ensureQuestionRules(node);
+      const fieldTypes = ["radio", "checkbox", "toggle", "cycle", "select", "slider"];
+      const ftOpts = fieldTypes.map((t) =>
+        `<option value="${t}" ${node.fieldType === t ? "selected" : ""}>${t}</option>`).join("");
+      const options = node.options || [];
+      extra = `
+        <div class="form-row">
+          <label class="field-label">Control type</label>
+          <select id="fieldType">${ftOpts}</select>
+        </div>`;
+
+      if (node.fieldType === "slider") {
+        if (!node.slider) {
+          node.slider = {
+            min: 0, max: 10, step: 1,
+            bands: [
+              { max: 3, label: "Low", routeKey: "low" },
+              { max: 7, label: "Medium", routeKey: "medium" },
+              { max: 10, label: "High", routeKey: "high" }
+            ]
+          };
+        }
+        extra += `
+          <div class="form-row two">
+            <div class="form-row">
+              <label class="field-label">Min</label>
+              <input type="number" id="sliderMin" value="${node.slider.min}" />
+            </div>
+            <div class="form-row">
+              <label class="field-label">Max</label>
+              <input type="number" id="sliderMax" value="${node.slider.max}" />
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="field-label">Default value</label>
+            <input type="number" id="defaultValue" value="${escapeHtml(String(node.defaultValue ?? 0))}" />
+          </div>
+          <div class="form-row">
+            <label class="field-label">Bands</label>
+            <p class="field-hint">Use band keys in IF rules with “in band”. Renaming a key updates all rules that use it across the Flow.</p>
+            ${(node.slider.bands || []).map((b, i) => `
+              <div class="route-row" style="margin-top:8px">
+                <div>
+                  <label class="field-label">Band ≤ max — label</label>
+                  <input type="text" data-bandlabel="${i}" value="${escapeHtml(b.label)}" placeholder="Label" />
+                  <input type="number" data-bandmax="${i}" value="${b.max}" style="margin-top:6px" />
+                  <label class="field-label" style="margin-top:8px">Band key (used in rules)</label>
+                  <input type="text" data-bandkey="${i}" value="${escapeHtml(b.routeKey)}" placeholder="key" />
+                </div>
+                <div>
+                  <button type="button" class="btn btn-neutral btn-sm" data-bandrule="${i}">Make rule</button>
+                </div>
+              </div>`).join("")}
+          </div>`;
+      } else {
+        const isCheckbox = node.fieldType === "checkbox";
+        extra += `
+          <div class="form-row">
+            <label class="field-label">Options</label>
+            <p class="field-hint">Drag ⋮⋮ to reorder. Labels are safe to rename. Changing a value (or an auto-value from the label) updates every rule that uses it across the Flow.</p>
+            <div class="option-editor" id="optEditor">
+              <div class="option-head" aria-hidden="true">
+                <span></span>
+                <span>Label</span>
+                <span>Value</span>
+                <span></span>
+                <span></span>
+              </div>
+              ${options.map((o, i) => `
+                <div class="option-row" data-optindex="${i}" draggable="false">
+                  <span class="drag-handle" draggable="true" title="Drag to reorder" aria-label="Drag to reorder">⋮⋮</span>
+                  <input type="text" data-optlabel="${i}" value="${escapeHtml(o.label)}" placeholder="Label" aria-label="Label" />
+                  <input type="text" data-optvalue="${i}" value="${escapeHtml(o.value)}" placeholder="Value" aria-label="Value" />
+                  <button type="button" class="btn btn-neutral btn-sm" data-makerule="${i}" title="Make IF/THEN rule">Make rule</button>
+                  <button type="button" class="btn btn-icon btn-danger-ghost" data-delopt="${i}" title="Delete option" aria-label="Delete option">
+                    <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                  </button>
+                </div>`).join("")}
+            </div>
+            <button class="btn btn-neutral btn-sm" id="btnAddOpt" style="margin-top:8px">Add option</button>
+          </div>
+          <div class="form-row">
+            <label class="field-label">Default value</label>
+            ${isCheckbox
+              ? `<p class="field-hint">Checkbox default is empty selection.</p>`
+              : `<select id="defaultValue">${options.map((o) =>
+                  `<option value="${escapeHtml(o.value)}" ${o.value === node.defaultValue ? "selected" : ""}>${escapeHtml(o.label)}</option>`
+                ).join("")}</select>`}
+          </div>`;
+      }
+      extra += renderRulesEditorHtml(wf, node);
+    }
+
+    const linksBlock = `
+      <div class="form-row">
+        <label class="field-label">Links</label>
+        <div id="linkEditor">
+          ${(node.links || []).map((l, i) => `
+            <div class="link-row" style="margin-bottom:8px">
+              <input type="text" data-linklabel="${i}" value="${escapeHtml(l.label)}" placeholder="Label" />
+              <input type="url" data-linkurl="${i}" value="${escapeHtml(l.url)}" placeholder="https://" />
+              <button class="btn btn-ghost btn-sm" data-dellink="${i}">Remove</button>
+            </div>`).join("")}
+        </div>
+        <button class="btn btn-neutral btn-sm" id="btnAddLink">Add link</button>
+      </div>`;
+
+    host.innerHTML = `
+      <div class="form-grid">
+        <div class="form-row two">
+          <div class="form-row">
+            <label class="field-label">Step title</label>
+            <input type="text" id="nodeTitle" value="${escapeHtml(node.title || "")}" />
+          </div>
+          <div class="form-row">
+            <label class="field-label">Kind</label>
+            <select id="nodeKind">${kindOpts}</select>
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Key question / prompt</label>
+          <textarea id="nodePrompt">${escapeHtml(node.prompt || "")}</textarea>
+          <p class="field-hint">State the key question or decision this step addresses.</p>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Flow guidance</label>
+          <textarea id="nodeGuidance">${escapeHtml(node.guidance || "")}</textarea>
+          <p class="field-hint">How to obtain relevant, robust evidence here — tips, policy refs, what to ask for.</p>
+        </div>
+        ${linksBlock}
+        ${extra}
+        <div class="alert" style="margin:0">
+          <strong>Route preview:</strong>
+          <div class="field-hint" style="margin-top:6px">${escapeHtml(routePreview(wf, node))}</div>
+        </div>
+      </div>
+    `;
+
+    host.querySelector("#nodeTitle").oninput = (e) => { node.title = e.target.value; syncStepListTitle(); };
+    host.querySelector("#nodePrompt").oninput = (e) => { node.prompt = e.target.value; };
+    host.querySelector("#nodeGuidance").oninput = (e) => { node.guidance = e.target.value; };
+    host.querySelector("#nodeKind").onchange = (e) => {
+      convertKind(node, e.target.value);
+      renderBuilder();
+    };
+
+    const addLink = host.querySelector("#btnAddLink");
+    if (addLink) {
+      addLink.onclick = () => {
+        if (!node.links) node.links = [];
+        node.links.push({ label: "Link", url: "https://" });
+        renderNodeEditor(node);
+      };
+      host.querySelectorAll("[data-linklabel]").forEach((inp) => {
+        inp.oninput = () => { node.links[+inp.dataset.linklabel].label = inp.value; };
+      });
+      host.querySelectorAll("[data-linkurl]").forEach((inp) => {
+        inp.oninput = () => { node.links[+inp.dataset.linkurl].url = inp.value; };
+      });
+      host.querySelectorAll("[data-dellink]").forEach((btn) => {
+        btn.onclick = () => { node.links.splice(+btn.dataset.dellink, 1); renderNodeEditor(node); };
+      });
+    }
+
+    if (node.kind === "outcome") {
+      host.querySelectorAll("#endHereToggle [data-endhere]").forEach((btn) => {
+        btn.onclick = () => {
+          const end = btn.dataset.endhere === "true";
+          node.endHere = end;
+          if (!end) {
+            const firstTerminal = outcomeNodes(wf).find((o) => o.id !== node.id && isTerminalOutcome(o));
+            node.next = node.next || (firstTerminal && firstTerminal.id) || wf.startNodeId;
+          }
+          renderBuilder();
+        };
+      });
+      const img = host.querySelector("#outcomeImage");
+      if (img) img.oninput = (e) => { node.imageUrl = e.target.value.trim(); };
+      const nextSel = host.querySelector("#outcomeNext");
+      if (nextSel) nextSel.onchange = (e) => { node.next = e.target.value; renderNodeEditor(node); };
+      host.querySelector("#btnAddAction").onclick = () => {
+        if (!node.actions) node.actions = [];
+        node.actions.push("New action");
+        renderNodeEditor(node);
+      };
+      host.querySelectorAll("[data-action]").forEach((inp) => {
+        inp.oninput = () => { node.actions[+inp.dataset.action] = inp.value; };
+      });
+      host.querySelectorAll("[data-delaction]").forEach((btn) => {
+        btn.onclick = () => { node.actions.splice(+btn.dataset.delaction, 1); renderNodeEditor(node); };
+      });
+    } else {
+      host.querySelector("#fieldType").onchange = (e) => {
+        node.fieldType = e.target.value;
+        if (node.fieldType === "checkbox") node.defaultValue = [];
+        else if (node.fieldType === "slider") {
+          node.defaultValue = 5;
+          node.slider = node.slider || {
+            min: 0, max: 10, step: 1,
+            bands: [
+              { max: 3, label: "Low", routeKey: "low" },
+              { max: 7, label: "Medium", routeKey: "medium" },
+              { max: 10, label: "High", routeKey: "high" }
+            ]
+          };
+        } else if (Array.isArray(node.defaultValue)) {
+          node.defaultValue = (node.options[0] && node.options[0].value) || "";
+        }
+        renderNodeEditor(node);
+      };
+      const dr = host.querySelector("#defaultRoute");
+      if (dr) dr.onchange = (e) => { node.defaultRoute = e.target.value; renderNodeEditor(node); };
+
+      if (node.fieldType === "slider") {
+        host.querySelector("#sliderMin").oninput = (e) => { node.slider.min = +e.target.value; };
+        host.querySelector("#sliderMax").oninput = (e) => { node.slider.max = +e.target.value; };
+        host.querySelector("#defaultValue").oninput = (e) => { node.defaultValue = +e.target.value; };
+        host.querySelectorAll("[data-bandlabel]").forEach((inp) => {
+          inp.oninput = () => { node.slider.bands[+inp.dataset.bandlabel].label = inp.value; };
+        });
+        host.querySelectorAll("[data-bandmax]").forEach((inp) => {
+          inp.oninput = () => { node.slider.bands[+inp.dataset.bandmax].max = +inp.value; };
+        });
+        host.querySelectorAll("[data-bandkey]").forEach((inp) => {
+          inp.onchange = () => {
+            const n = setBandRouteKey(node, +inp.dataset.bandkey, inp.value, wf);
+            if (n) toast(`Updated ${n} condition${n === 1 ? "" : "s"} across the Flow`);
+            renderNodeEditor(node);
+          };
+        });
+        host.querySelectorAll("[data-bandrule]").forEach((btn) => {
+          btn.onclick = () => {
+            const i = +btn.dataset.bandrule;
+            const band = node.slider.bands[i];
+            ensureQuestionRules(node);
+            node.rules.push(createRule({
+              join: "and",
+              conditions: [createCondition(node.id, "in_band", band.routeKey)],
+              then: node.defaultRoute || ""
+            }));
+            toast("Rule added — set THEN go to");
+            renderNodeEditor(node);
+          };
+        });
+      } else {
+        const btnAddOpt = host.querySelector("#btnAddOpt");
+        if (btnAddOpt) {
+          btnAddOpt.onclick = () => {
+            const label = "Option " + (node.options.length + 1);
+            const v = uniqueOptionValue(node, composeOptionValue(node, label));
+            node.options.push({ value: v, label });
+            renderNodeEditor(node);
+          };
+        }
+        host.querySelectorAll("[data-optlabel]").forEach((inp) => {
+          inp.oninput = () => {
+            node.options[+inp.dataset.optlabel].label = inp.value;
+          };
+          inp.onblur = () => {
+            const i = +inp.dataset.optlabel;
+            const opt = node.options[i];
+            if (!opt) return;
+            opt.label = inp.value;
+            const titlePart = slugifyOptionPart(node.title) || "step";
+            const prefix = titlePart + "_";
+            const val = String(opt.value || "").trim();
+            // Empty or auto-style values (title_…) stay in sync with the label and cascade to rules.
+            if (!val || val.startsWith(prefix)) {
+              const n = setOptionValue(node, i, composeOptionValue(node, opt.label), wf);
+              if (n) toast(`Updated ${n} condition${n === 1 ? "" : "s"} across the Flow`);
+              renderNodeEditor(node);
+            }
+          };
+        });
+        host.querySelectorAll("[data-optvalue]").forEach((inp) => {
+          inp.onchange = () => {
+            const n = setOptionValue(node, +inp.dataset.optvalue, inp.value, wf);
+            if (n) toast(`Updated ${n} condition${n === 1 ? "" : "s"} across the Flow`);
+            renderNodeEditor(node);
+          };
+        });
+        host.querySelectorAll("[data-makerule]").forEach((btn) => {
+          btn.onclick = () => {
+            const i = +btn.dataset.makerule;
+            const opt = node.options[i];
+            if (!opt) return;
+            ensureQuestionRules(node);
+            const op = node.fieldType === "checkbox" ? "includes" : "eq";
+            node.rules.push(createRule({
+              join: "and",
+              conditions: [createCondition(node.id, op, opt.value)],
+              then: node.defaultRoute || ""
+            }));
+            toast("Rule added — set THEN go to");
+            renderNodeEditor(node);
+          };
+        });
+        host.querySelectorAll("[data-delopt]").forEach((btn) => {
+          btn.onclick = () => {
+            const i = +btn.dataset.delopt;
+            const opt = node.options[i];
+            if (!opt) return;
+            const label = opt.label || opt.value || "this option";
+            const refs = countAnswerValueRefs(wf, node.id, opt.value);
+            showModal({
+              title: "Delete option?",
+              body: `<p>Remove “${escapeHtml(label)}”?${refs
+                ? ` This will also remove <strong>${refs}</strong> condition${refs === 1 ? "" : "s"} (and any rules left empty) across the Flow.`
+                : ""}</p>`,
+              actions: [
+                { label: "Cancel", className: "btn-neutral", onClick: closeModal },
+                {
+                  label: "Delete",
+                  className: "btn-danger",
+                  onClick: () => {
+                    const val = node.options[i].value;
+                    const cleared = removeAnswerValueRefs(wf, node.id, val);
+                    node.options.splice(i, 1);
+                    if (node.defaultValue === val) {
+                      node.defaultValue = (node.options[0] && node.options[0].value) || "";
+                    }
+                    closeModal();
+                    if (cleared.removedConds) {
+                      toast(`Removed ${cleared.removedConds} condition${cleared.removedConds === 1 ? "" : "s"}` +
+                        (cleared.removedRules ? ` · ${cleared.removedRules} empty rule${cleared.removedRules === 1 ? "" : "s"}` : ""));
+                    }
+                    renderNodeEditor(node);
+                  }
+                }
+              ]
+            });
+          };
+        });
+        bindOptionDragDrop(host.querySelector("#optEditor"), node);
+        const dv = host.querySelector("#defaultValue");
+        if (dv) dv.onchange = (e) => { node.defaultValue = e.target.value; };
+      }
+      bindRulesEditor(host, wf, node);
+    }
+  }
+
+  function bindRulesEditor(host, wf, node) {
+    ensureQuestionRules(node);
+    const addRule = host.querySelector("#btnAddRule");
+    if (addRule) {
+      addRule.onclick = () => {
+        const firstOpt = (node.options && node.options[0] && node.options[0].value) || "";
+        const op = node.fieldType === "checkbox" ? "includes" : (node.fieldType === "slider" ? "in_band" : "eq");
+        const val = node.fieldType === "slider"
+          ? ((node.slider && node.slider.bands[0] && node.slider.bands[0].routeKey) || "low")
+          : firstOpt;
+        node.rules.push(createRule({
+          join: "and",
+          conditions: [createCondition(node.id, op, val)],
+          then: node.defaultRoute || ""
+        }));
+        renderNodeEditor(node);
+      };
+    }
+    host.querySelectorAll("[data-rulejoin]").forEach((seg) => {
+      const ri = +seg.dataset.rulejoin;
+      seg.querySelectorAll("[data-join]").forEach((btn) => {
+        btn.onclick = () => {
+          node.rules[ri].join = btn.dataset.join;
+          renderNodeEditor(node);
+        };
+      });
+    });
+    host.querySelectorAll("[data-delrule]").forEach((btn) => {
+      btn.onclick = () => {
+        const ri = +btn.dataset.delrule;
+        showModal({
+          title: "Delete rule?",
+          body: `<p>Remove rule ${ri + 1}?</p>`,
+          actions: [
+            { label: "Cancel", className: "btn-neutral", onClick: closeModal },
+            {
+              label: "Delete", className: "btn-danger", onClick: () => {
+                node.rules.splice(ri, 1);
+                closeModal();
+                renderNodeEditor(node);
+              }
+            }
+          ]
+        });
+      };
+    });
+    host.querySelectorAll("[data-addcond]").forEach((btn) => {
+      btn.onclick = () => {
+        const ri = +btn.dataset.addcond;
+        const op = node.fieldType === "checkbox" ? "includes" : "eq";
+        const val = (node.options && node.options[0] && node.options[0].value) || "";
+        if (!node.rules[ri].conditions) node.rules[ri].conditions = [];
+        node.rules[ri].conditions.push(createCondition(node.id, op, val));
+        renderNodeEditor(node);
+      };
+    });
+    host.querySelectorAll("[data-delcond]").forEach((btn) => {
+      btn.onclick = () => {
+        const [ri, ci] = btn.dataset.delcond.split(":").map(Number);
+        node.rules[ri].conditions.splice(ci, 1);
+        if (!node.rules[ri].conditions.length) {
+          node.rules[ri].conditions.push(createCondition(node.id, "eq", ""));
+        }
+        renderNodeEditor(node);
+      };
+    });
+    host.querySelectorAll("[data-cond-step]").forEach((sel) => {
+      sel.onchange = () => {
+        const [ri, ci] = sel.dataset.condStep.split(":").map(Number);
+        const step = wf.nodes[sel.value];
+        const ops = conditionOpsForStep(step);
+        node.rules[ri].conditions[ci].stepId = sel.value;
+        node.rules[ri].conditions[ci].op = ops[0][0];
+        if (step && step.fieldType === "slider") {
+          node.rules[ri].conditions[ci].value = (step.slider && step.slider.bands[0] && step.slider.bands[0].routeKey) || "";
+        } else {
+          node.rules[ri].conditions[ci].value = (step && step.options && step.options[0] && step.options[0].value) || "";
+        }
+        renderNodeEditor(node);
+      };
+    });
+    host.querySelectorAll("[data-cond-op]").forEach((sel) => {
+      sel.onchange = () => {
+        const [ri, ci] = sel.dataset.condOp.split(":").map(Number);
+        node.rules[ri].conditions[ci].op = sel.value;
+      };
+    });
+    host.querySelectorAll("[data-cond-val]").forEach((sel) => {
+      sel.onchange = () => {
+        const [ri, ci] = sel.dataset.condVal.split(":").map(Number);
+        node.rules[ri].conditions[ci].value = sel.value;
+      };
+    });
+    host.querySelectorAll("[data-rulethen]").forEach((sel) => {
+      sel.onchange = () => {
+        node.rules[+sel.dataset.rulethen].then = sel.value;
+        renderNodeEditor(node);
+      };
+    });
+    bindRuleDragDrop(host.querySelector("#rulesEditor"), node);
+  }
+
+  function bindRuleDragDrop(list, node) {
+    if (!list || !node || !Array.isArray(node.rules)) return;
+    let dragFrom = null;
+    let placeAfter = false;
+    list.querySelectorAll(".rule-card").forEach((row) => {
+      const handle = row.querySelector(".drag-handle");
+      if (!handle) return;
+      handle.addEventListener("dragstart", (e) => {
+        dragFrom = +row.dataset.ruleindex;
+        placeAfter = false;
+        row.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", String(dragFrom));
+        try { e.dataTransfer.setDragImage(row, 20, 20); } catch (_) { /* ignore */ }
+      });
+      handle.addEventListener("dragend", () => {
+        dragFrom = null;
+        placeAfter = false;
+        clearDropLines(list, ".rule-card");
+      });
+      row.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (dragFrom === null) return;
+        placeAfter = setDropLine(list, ".rule-card", row, e.clientY);
+      });
+      row.addEventListener("dragleave", (e) => {
+        if (!row.contains(e.relatedTarget)) row.classList.remove("drop-before", "drop-after");
+      });
+      row.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const from = dragFrom != null ? dragFrom : parseInt(e.dataTransfer.getData("text/plain"), 10);
+        const to = +row.dataset.ruleindex;
+        const after = row.classList.contains("drop-after") || placeAfter;
+        clearDropLines(list, ".rule-card");
+        dragFrom = null;
+        placeAfter = false;
+        if (Number.isNaN(from) || Number.isNaN(to)) return;
+        if (reorderWithDropLine(node.rules, from, to, after)) renderNodeEditor(node);
+      });
+    });
+  }
+
+  function clearDropLines(root, itemSelector) {
+    if (!root) return;
+    root.querySelectorAll(itemSelector).forEach((el) => {
+      el.classList.remove("drop-before", "drop-after", "dragging", "drag-over");
+    });
+  }
+
+  function setDropLine(root, itemSelector, row, clientY) {
+    root.querySelectorAll(itemSelector).forEach((el) => {
+      el.classList.remove("drop-before", "drop-after");
+    });
+    const rect = row.getBoundingClientRect();
+    const placeAfter = clientY > rect.top + rect.height / 2;
+    row.classList.add(placeAfter ? "drop-after" : "drop-before");
+    return placeAfter;
+  }
+
+  /** Reorder array in place. `to` is hover index; `placeAfter` inserts after that item. */
+  function reorderWithDropLine(arr, from, to, placeAfter) {
+    if (!arr || from < 0 || to < 0 || from >= arr.length || to >= arr.length) return false;
+    let insertAt = placeAfter ? to + 1 : to;
+    if (from === insertAt || from + 1 === insertAt) return false;
+    const moved = arr.splice(from, 1)[0];
+    if (from < insertAt) insertAt -= 1;
+    arr.splice(insertAt, 0, moved);
+    return true;
+  }
+
+  function bindOptionDragDrop(editor, node) {
+    if (!editor || !node || !Array.isArray(node.options)) return;
+    let dragFrom = null;
+    let placeAfter = false;
+
+    editor.querySelectorAll(".option-row").forEach((row) => {
+      const handle = row.querySelector(".drag-handle");
+      if (!handle) return;
+
+      handle.addEventListener("dragstart", (e) => {
+        dragFrom = +row.dataset.optindex;
+        placeAfter = false;
+        row.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", String(dragFrom));
+        try {
+          e.dataTransfer.setDragImage(row, 20, 20);
+        } catch (_) { /* ignore */ }
+      });
+
+      handle.addEventListener("dragend", () => {
+        dragFrom = null;
+        placeAfter = false;
+        clearDropLines(editor, ".option-row");
+      });
+
+      row.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (dragFrom === null) return;
+        placeAfter = setDropLine(editor, ".option-row", row, e.clientY);
+      });
+
+      row.addEventListener("dragleave", (e) => {
+        if (!row.contains(e.relatedTarget)) {
+          row.classList.remove("drop-before", "drop-after");
+        }
+      });
+
+      row.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const from = dragFrom != null ? dragFrom : parseInt(e.dataTransfer.getData("text/plain"), 10);
+        const to = +row.dataset.optindex;
+        const after = row.classList.contains("drop-after") || placeAfter;
+        clearDropLines(editor, ".option-row");
+        dragFrom = null;
+        placeAfter = false;
+        if (Number.isNaN(from) || Number.isNaN(to)) return;
+        if (reorderWithDropLine(node.options, from, to, after)) {
+          renderNodeEditor(node);
+        }
+      });
+    });
+  }
+
+  function bindStepDragDrop(list, wf) {
+    if (!list || !wf) return;
+    ensureStepOrder(wf);
+    let dragFrom = null;
+    let placeAfter = false;
+
+    list.querySelectorAll(".step-li").forEach((row) => {
+      const handle = row.querySelector(".drag-handle");
+      if (!handle) return;
+
+      handle.addEventListener("dragstart", (e) => {
+        dragFrom = +row.dataset.stepindex;
+        placeAfter = false;
+        row.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", String(dragFrom));
+        try {
+          e.dataTransfer.setDragImage(row, 20, 20);
+        } catch (_) { /* ignore */ }
+      });
+
+      handle.addEventListener("dragend", () => {
+        dragFrom = null;
+        placeAfter = false;
+        clearDropLines(list, ".step-li");
+      });
+
+      row.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (dragFrom === null) return;
+        placeAfter = setDropLine(list, ".step-li", row, e.clientY);
+      });
+
+      row.addEventListener("dragleave", (e) => {
+        if (!row.contains(e.relatedTarget)) {
+          row.classList.remove("drop-before", "drop-after");
+        }
+      });
+
+      row.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const from = dragFrom != null ? dragFrom : parseInt(e.dataTransfer.getData("text/plain"), 10);
+        const to = +row.dataset.stepindex;
+        const after = row.classList.contains("drop-after") || placeAfter;
+        clearDropLines(list, ".step-li");
+        dragFrom = null;
+        placeAfter = false;
+        if (Number.isNaN(from) || Number.isNaN(to)) return;
+        ensureStepOrder(wf);
+        if (reorderWithDropLine(wf.stepOrder, from, to, after)) {
+          renderBuilder();
+        }
+      });
+    });
+  }
+
+  function syncStepListTitle() {
+    // light refresh of side list titles without full re-render of editor focus
+    const wf = app.draft;
+    document.querySelectorAll("[data-sel]").forEach((btn) => {
+      const n = wf.nodes[btn.dataset.sel];
+      if (!n) return;
+      const t = btn.querySelector(".si-title");
+      if (t) t.textContent = n.title || "Untitled";
+    });
+  }
+
+  function convertKind(node, kind) {
+    const wf = app.draft;
+    const firstOutcome = outcomeNodes(wf)[0];
+    const fallback = firstOutcome ? firstOutcome.id : wf.startNodeId;
+    node.kind = kind;
+    if (kind === "outcome") {
+      delete node.fieldType;
+      delete node.options;
+      delete node.routes;
+      delete node.rules;
+      delete node.defaultRoute;
+      delete node.defaultValue;
+      delete node.slider;
+      if (!node.links) node.links = [];
+      if (node.imageUrl == null) node.imageUrl = "";
+      if (node.endHere === undefined) node.endHere = true;
+      if (!node.actions) node.actions = ["Next action"];
+      if (node.endHere === false) node.next = node.next || fallback;
+      else delete node.next;
+    } else {
+      if (kind === "info") {
+        node.kind = "outcome";
+        node.endHere = false;
+        if (!node.links) node.links = [];
+        if (node.imageUrl == null) node.imageUrl = "";
+        if (!node.actions) node.actions = [];
+        node.next = node.next || fallback;
+        delete node.fieldType;
+        delete node.options;
+        delete node.routes;
+        delete node.rules;
+        delete node.defaultRoute;
+        delete node.defaultValue;
+        delete node.slider;
+        return;
+      }
+      delete node.actions;
+      delete node.next;
+      delete node.imageUrl;
+      delete node.endHere;
+      if (!node.links) node.links = [];
+      node.fieldType = node.fieldType || "radio";
+      node.options = node.options || [
+        { value: "yes", label: "Yes" },
+        { value: "no", label: "No" }
+      ];
+      node.defaultValue = node.defaultValue ?? "yes";
+      node.defaultRoute = node.defaultRoute || fallback;
+      if (!Array.isArray(node.rules) || !node.rules.length) {
+        node.rules = (node.options || []).map((o) => createRule({
+          join: "and",
+          conditions: [createCondition(node.id, "eq", o.value)],
+          then: fallback
+        }));
+      }
+      delete node.routes;
+    }
+  }
+
+  function routePreview(wf, node) {
+    if (!node) return "";
+    migrateInfoToOutcome(node);
+    if (node.kind === "outcome") {
+      normalizeOutcome(node);
+      if (isTerminalOutcome(node)) {
+        return `End here · ${(node.actions || []).length} action(s)`;
+      }
+      return `Continue → ${nodeLabel(wf.nodes[node.next])} · ${(node.actions || []).length} action(s)`;
+    }
+    ensureQuestionRules(node);
+    const bits = (node.rules || []).map((r) => {
+      const join = (r.join || "and").toUpperCase();
+      const conds = (r.conditions || []).map((c) => formatConditionText(wf, c)).join(` ${join} `);
+      return `IF ${conds || "(empty)"} THEN ${nodeLabel(wf.nodes[r.then])}`;
+    });
+    bits.push(`ELSE ${nodeLabel(wf.nodes[node.defaultRoute])}`);
+    return bits.join(" · ");
+  }
+
+  // ─── Runner ────────────────────────────────────────────
+  function startRun(workflowId, opts = {}) {
+    const wf = getWorkflow(workflowId);
+    if (!wf) return;
+    const errs = validateWorkflow(wf);
+    if (errs.length && !opts.test) {
+      showModal({
+        title: "Flow has issues",
+        body: `<ul>${errs.map((e) => `<li>${escapeHtml(e)}</li>`).join("")}</ul><p>Edit the flow to fix these before running.</p>`,
+        actions: [
+          { label: "Cancel", className: "btn-neutral", onClick: closeModal },
+          { label: "Edit", className: "btn-secondary", onClick: () => { closeModal(); openBuilder(workflowId); } }
+        ]
+      });
+      return;
+    }
+    const last = loadLastRunner();
+    const userName = opts.test ? (last.userName || "Tester") : (last.userName || "");
+    const caseNumber = opts.test ? (last.caseNumber || "TEST") : (last.caseNumber || "");
+    const run = {
+      id: uid("run"),
+      workflowId: wf.id,
+      userName,
+      caseNumber,
+      name: composeRunName({ userName, caseNumber, test: !!opts.test }) || (opts.test ? "Test run" : "New run"),
+      status: "in_progress",
+      createdAt: now(),
+      updatedAt: now(),
+      isTest: !!opts.test,
+      currentNodeId: wf.startNodeId,
+      answers: [],
+      actions: [],
+      actionMarks: {}
+    };
+    saveRun(run);
+    openRunner(run.id);
+  }
+
+  function applyRunMetaFromInputs(run) {
+    const nameEl = document.getElementById("runUserName");
+    const caseEl = document.getElementById("runCaseNumber");
+    if (!nameEl && !caseEl) return true;
+    const userName = (nameEl && nameEl.value ? nameEl.value : "").trim();
+    const caseNumber = (caseEl && caseEl.value ? caseEl.value : "").trim();
+    if (!userName || !caseNumber) {
+      toast("Enter entity and case number");
+      return false;
+    }
+    run.userName = userName;
+    run.caseNumber = caseNumber;
+    run.name = composeRunName({
+      userName: run.userName,
+      caseNumber: run.caseNumber,
+      test: !!run.isTest
+    });
+    saveLastRunner(run.userName, run.caseNumber);
+    return true;
+  }
+
+  const ACTION_STATUSES = ["null", "done", "na"];
+  const ACTION_STATUS_LABELS = { null: "To do", done: "Done", na: "N/A" };
+
+  function actionMarkKey(nodeId, index) {
+    return nodeId + ":" + index;
+  }
+
+  function getActionMark(run, nodeId, index) {
+    if (!run.actionMarks) run.actionMarks = {};
+    const v = run.actionMarks[actionMarkKey(nodeId, index)];
+    return ACTION_STATUSES.includes(v) ? v : "null";
+  }
+
+  function cycleActionMark(run, nodeId, index) {
+    const cur = getActionMark(run, nodeId, index);
+    const next = ACTION_STATUSES[(ACTION_STATUSES.indexOf(cur) + 1) % ACTION_STATUSES.length];
+    if (!run.actionMarks) run.actionMarks = {};
+    run.actionMarks[actionMarkKey(nodeId, index)] = next;
+    saveRun(run);
+    return next;
+  }
+
+  function renderActionStatusCycle(run, nodeId, index) {
+    const cur = getActionMark(run, nodeId, index);
+    return `
+      <button type="button"
+        class="status-cycle"
+        data-action-node="${escapeHtml(nodeId)}"
+        data-action-index="${index}"
+        data-status="${cur}"
+        title="Tap to cycle: To do → Done → N/A"
+        aria-label="Status ${ACTION_STATUS_LABELS[cur]}. Tap to cycle.">
+        <span class="status-cycle-label">${ACTION_STATUS_LABELS[cur]}</span>
+      </button>`;
+  }
+
+  function renderActionsListHtml(run, nodeId, actions) {
+    if (!actions || !actions.length) {
+      return `<li class="muted" style="display:block">No evidence actions listed</li>`;
+    }
+    return actions.map((a, i) => `
+      <li>
+        <span class="action-text">${escapeHtml(a)}</span>
+        ${renderActionStatusCycle(run, nodeId, i)}
+      </li>`).join("");
+  }
+
+  function bindActionStatusCycles(root, run) {
+    if (!root) return;
+    root.querySelectorAll(".status-cycle").forEach((btn) => {
+      btn.onclick = () => {
+        const next = cycleActionMark(run, btn.dataset.actionNode, +btn.dataset.actionIndex);
+        btn.dataset.status = next;
+        const label = btn.querySelector(".status-cycle-label");
+        if (label) label.textContent = ACTION_STATUS_LABELS[next];
+        btn.setAttribute("aria-label", "Status " + ACTION_STATUS_LABELS[next] + ". Tap to cycle.");
+      };
+    });
+  }
+
+  function pathExportBasename(run) {
+    const bits = [run.caseNumber, run.userName].filter(Boolean).join("-") || run.name || "run";
+    const base = "clow-path-" + slug(bits);
+    return run.status === "completed" ? base : base + "-partial";
+  }
+
+  function buildRunExportPayload(run, wf) {
+    const cur = wf && wf.nodes ? wf.nodes[run.currentNodeId] : null;
+    return {
+      type: "clow-run",
+      version: 1,
+      exportedAt: now(),
+      partial: run.status !== "completed",
+      workflowName: wf ? wf.name : "",
+      workflowId: run.workflowId,
+      userName: run.userName || "",
+      caseNumber: run.caseNumber || "",
+      title: runDisplayTitle(run),
+      currentStep: cur ? nodeLabel(cur) : (run.currentNodeId || ""),
+      run: deepClone(run)
+    };
+  }
+
+  function collectRunActionRows(run, wf) {
+    const rows = [];
+    const seen = new Set();
+    const pushNode = (nodeId) => {
+      if (!nodeId || seen.has(nodeId) || !wf.nodes[nodeId]) return;
+      seen.add(nodeId);
+      const n = wf.nodes[nodeId];
+      if (n.kind !== "outcome") return;
+      normalizeOutcome(n);
+      (n.actions || []).forEach((text, index) => {
+        rows.push({
+          step: nodeLabel(n),
+          text,
+          status: ACTION_STATUS_LABELS[getActionMark(run, nodeId, index)] || "To do"
+        });
+      });
+    };
+    (run.answers || []).forEach((a) => pushNode(a.nodeId));
+    pushNode(run.currentNodeId);
+    return rows;
+  }
+
+  function buildRunReportHtml(run, wf) {
+    const partial = run.status !== "completed";
+    const cur = wf.nodes[run.currentNodeId];
+    const statusLabel = partial ? "In progress" : "Complete";
+    const actionRows = collectRunActionRows(run, wf);
+    const pathItems = (run.answers || []).map((a) => `
+      <li>
+        <div class="q">${escapeHtml(a.prompt || a.title || "")}</div>
+        <div class="a">${escapeHtml(a.display != null ? String(a.display) : "")}</div>
+        ${a.routeReason ? `<div class="why">${escapeHtml(a.routeReason)}</div>` : ""}
+      </li>`).join("") || `<li class="muted">No path steps recorded yet.</li>`;
+
+    const actionsHtml = actionRows.length
+      ? actionRows.map((r) => `
+          <li>
+            <span class="step">${escapeHtml(r.step)}</span>
+            <span class="act">${escapeHtml(r.text)}</span>
+            <span class="st">${escapeHtml(r.status)}</span>
+          </li>`).join("")
+      : `<li class="muted">No evidence actions recorded.</li>`;
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${escapeHtml(wf.name)} — ${escapeHtml(runDisplayTitle(run))}</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; color: #1c2430; background: #f3f4f7; margin: 0; padding: 24px; line-height: 1.45; }
+    .wrap { max-width: 720px; margin: 0 auto; background: #fff; border: 1px solid #e2e5ec; border-radius: 10px; padding: 28px 32px; }
+    h1 { font-size: 1.6rem; margin: 0 0 6px; }
+    h2 { font-size: 1.1rem; margin: 28px 0 10px; border-bottom: 1px solid #e2e5ec; padding-bottom: 6px; }
+    .sub { color: #5c6675; margin: 0 0 16px; font-family: system-ui, sans-serif; font-size: 0.92rem; }
+    .meta { font-family: system-ui, sans-serif; font-size: 0.85rem; color: #5c6675; margin: 0 0 8px; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #e8f0f8; color: #2f5d8c; font-family: system-ui, sans-serif; font-size: 0.75rem; font-weight: 700; }
+    .tag.warn { background: #faf3e4; color: #9a6b1f; }
+    .note { font-family: system-ui, sans-serif; font-size: 0.88rem; background: #faf3e4; border-left: 3px solid #9a6b1f; padding: 10px 12px; margin: 16px 0; color: #5c6675; }
+    ol.path, ul.actions { list-style: none; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+    ol.path li, ul.actions li { padding: 12px 0; border-bottom: 1px solid #e2e5ec; }
+    ol.path .q { color: #5c6675; font-size: 0.82rem; }
+    ol.path .a { font-weight: 700; margin-top: 2px; }
+    ol.path .why { color: #8a93a3; font-size: 0.78rem; margin-top: 4px; }
+    ul.actions li { display: grid; grid-template-columns: 1.2fr 2fr auto; gap: 10px; align-items: start; font-size: 0.9rem; }
+    ul.actions .step { color: #5c6675; }
+    ul.actions .st { font-weight: 700; color: #2f5d8c; white-space: nowrap; }
+    .muted { color: #8a93a3; }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .wrap { border: none; box-shadow: none; max-width: none; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="meta"><span class="tag${partial ? " warn" : ""}">${statusLabel}</span></p>
+    <h1>${escapeHtml(wf.name)}</h1>
+    <p class="sub">${escapeHtml(runDisplayTitle(run))}</p>
+    <p class="meta">Entity: ${escapeHtml(run.userName || "—")}</p>
+    <p class="meta">Case number: ${escapeHtml(run.caseNumber || "—")}</p>
+    <p class="meta">Exported ${escapeHtml(fmtDate(now()))}</p>
+    ${partial ? `<p class="meta">Current step: ${escapeHtml(cur ? nodeLabel(cur) : "(unknown)")}</p>
+    <div class="note">This is a mid-Flow snapshot. The path may grow if the run continues.</div>` : ""}
+    <h2>Methodology path</h2>
+    <ol class="path">${pathItems}</ol>
+    <h2>Evidence / actions</h2>
+    <ul class="actions">${actionsHtml}</ul>
+  </div>
+</body>
+</html>`;
+  }
+
+  function exportRunJson(run, wf) {
+    const name = pathExportBasename(run) + ".json";
+    downloadJson(name, buildRunExportPayload(run, wf));
+    toast("Path exported (JSON)");
+  }
+
+  function exportRunHtml(run, wf) {
+    const name = pathExportBasename(run) + ".html";
+    downloadText(name, buildRunReportHtml(run, wf), "text/html;charset=utf-8");
+    toast("Path report exported (HTML)");
+  }
+
+  function bindRunExportButtons(root, run, wf) {
+    if (!root) return;
+    const j = root.querySelector("#btnExpJson");
+    const h = root.querySelector("#btnExpHtml");
+    if (j) j.onclick = () => exportRunJson(run, wf);
+    if (h) h.onclick = () => exportRunHtml(run, wf);
+  }
+
+  function openRunner(runId) {
+    const run = getRun(runId);
+    if (!run) { navigate("library"); return; }
+    const wf = getWorkflow(run.workflowId);
+    if (!wf) { toast("Flow missing for this run"); navigate("library"); return; }
+    const node = wf.nodes[run.currentNodeId];
+    app.runnerValue = initRunnerValue(node);
+    navigate("runner", { runId, workflowId: run.workflowId });
+  }
+
+  function initRunnerValue(node) {
+    if (!node || node.kind !== "question") return null;
+    if (node.fieldType === "checkbox") return Array.isArray(node.defaultValue) ? [...node.defaultValue] : [];
+    if (node.fieldType === "slider") return Number(node.defaultValue ?? (node.slider && node.slider.min) ?? 0);
+    return node.defaultValue != null ? node.defaultValue : (node.options[0] && node.options[0].value);
+  }
+
+  function renderRunner() {
+    document.querySelector(".main").classList.remove("wide");
+    const run = getRun(app.runId);
+    const wf = run && getWorkflow(run.workflowId);
+    if (!run || !wf) { navigate("library"); return; }
+
+    const node = wf.nodes[run.currentNodeId];
+    if (node && node.kind === "outcome") normalizeOutcome(node);
+    const isDone = run.status === "completed" || (node && isTerminalOutcome(node));
+
+    setHeaderActions(`
+      <button class="btn btn-ghost btn-sm" id="btnLeaveRun">${app.testMode || run.isTest ? "Back to builder" : "Library"}</button>
+      <button class="btn btn-neutral btn-sm" id="btnPrint">Print</button>
+      <button class="btn btn-neutral btn-sm" id="btnExpJson">Export JSON</button>
+      <button class="btn btn-neutral btn-sm" id="btnExpHtml">Export HTML</button>
+    `, (el) => {
+      el.querySelector("#btnLeaveRun").onclick = () => {
+        if (run.isTest || app.testMode) {
+          app.testMode = false;
+          openBuilder(wf.id);
+        } else {
+          navigate("library");
+        }
+      };
+      const pr = el.querySelector("#btnPrint");
+      if (pr) pr.onclick = () => window.print();
+      bindRunExportButtons(el, run, wf);
+    });
+
+    if (!node) {
+      document.getElementById("app").innerHTML = `<div class="alert error">Missing step. <button class="btn btn-neutral btn-sm" id="goLib">Library</button></div>`;
+      document.getElementById("goLib").onclick = () => navigate("library");
+      return;
+    }
+
+    if (isTerminalOutcome(node) && run.status !== "completed") {
+      run.status = "completed";
+      run.actions = node.actions || [];
+      run.completedAt = now();
+      saveRun(run);
+    }
+
+    if (run.status === "completed" || isTerminalOutcome(node)) {
+      renderEndScreen(run, wf, node);
+      return;
+    }
+
+    const stepNum = run.answers.length + 1;
+    const remaining = estimateRemaining(wf, node.id);
+    const isCheckpoint = node.kind === "outcome" && !isTerminalOutcome(node);
+    const nextLabel = isCheckpoint ? "Continue" : "Next";
+    const lastAnswer = run.answers.length ? run.answers[run.answers.length - 1] : null;
+    const arrivalReason = lastAnswer && lastAnswer.routeReason ? lastAnswer.routeReason : "";
+
+    document.getElementById("app").innerHTML = `
+      <div class="runner">
+        <div class="runner-progress">
+          <span>${escapeHtml(wf.name)}${run.caseNumber || run.userName ? " · " + escapeHtml(runDisplayTitle(run)) : ""}</span>
+          <span>Step ${stepNum} · ~${remaining} left</span>
+        </div>
+        <div class="panel runner-card">
+          ${run.answers.length === 0 ? `
+            <div class="run-meta-fields" style="margin-bottom:18px">
+              <div class="form-row">
+                <label class="field-label" for="runUserName">Entity</label>
+                <input type="text" id="runUserName" value="${escapeHtml(run.userName || "")}" placeholder="Entity" autocomplete="organization" />
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="runCaseNumber">Case number</label>
+                <input type="text" id="runCaseNumber" value="${escapeHtml(run.caseNumber || "")}" placeholder="e.g. 2026-00421" autocomplete="off" />
+              </div>
+            </div>` : ""}
+          ${arrivalReason ? `<p class="route-reason arrival">${escapeHtml(arrivalReason)}</p>` : ""}
+          <div class="runner-title">${escapeHtml(node.title || "")}${isCheckpoint ? ' <span class="tag">Checkpoint</span>' : ""}</div>
+          <h2 class="runner-prompt">${escapeHtml(node.prompt || "")}</h2>
+          ${node.guidance ? `<div class="runner-guidance">${escapeHtml(node.guidance)}</div>` : ""}
+          ${node.imageUrl ? `<img class="outcome-image" src="${escapeHtml(node.imageUrl)}" alt="" />` : ""}
+          ${(node.links && node.links.length) ? `
+            <div class="runner-links">
+              ${node.links.map((l) => `<a href="${escapeHtml(l.url)}" target="_blank" rel="noopener">${escapeHtml(l.label || l.url)}</a>`).join("")}
+            </div>` : ""}
+          ${isCheckpoint && (node.actions || []).length ? `
+            <div class="summary-block" style="margin-top:0;margin-bottom:16px" id="actionsBlock">
+              <h3>Evidence / actions</h3>
+              <ul class="actions-list">
+                ${renderActionsListHtml(run, node.id, node.actions)}
+              </ul>
+            </div>` : ""}
+          <div class="control-block" id="controlBlock"></div>
+          <div class="runner-actions">
+            <button class="btn btn-neutral btn-lg" id="btnBack" ${run.answers.length ? "" : "disabled"}>Back</button>
+            <button class="btn btn-primary btn-lg" id="btnNext">${nextLabel}</button>
+          </div>
+          ${run.answers.length ? `
+            <div class="history-trail">
+              <h3>Path so far</h3>
+              ${run.answers.map((a) => pathAnswerHtml(a)).join("")}
+            </div>` : ""}
+        </div>
+      </div>
+    `;
+
+    mountControl(node);
+    bindActionStatusCycles(document.getElementById("actionsBlock"), run);
+    document.getElementById("btnBack").onclick = () => runnerBack(run, wf);
+    document.getElementById("btnNext").onclick = () => runnerNext(run, wf, node);
+  }
+
+  function mountControl(node) {
+    const host = document.getElementById("controlBlock");
+    if (!host) return;
+    migrateInfoToOutcome(node);
+    if (node.kind === "outcome") {
+      host.innerHTML = isTerminalOutcome(node)
+        ? ""
+        : `<p class="muted">Review this checkpoint, then continue.</p>`;
+      return;
+    }
+
+    const ft = node.fieldType;
+    if (ft === "radio") {
+      host.innerHTML = `
+        <div class="radio-list">
+          ${(node.options || []).map((o) => `
+            <label class="choice">
+              <input type="radio" name="ans" value="${escapeHtml(o.value)}" ${app.runnerValue === o.value ? "checked" : ""} />
+              <span>${escapeHtml(o.label)}</span>
+            </label>`).join("")}
+        </div>`;
+      host.querySelectorAll("input").forEach((inp) => {
+        inp.onchange = () => { app.runnerValue = inp.value; };
+      });
+    } else if (ft === "checkbox") {
+      const selected = new Set(Array.isArray(app.runnerValue) ? app.runnerValue : []);
+      host.innerHTML = `
+        <div class="check-list">
+          ${(node.options || []).map((o) => `
+            <label class="choice">
+              <input type="checkbox" value="${escapeHtml(o.value)}" ${selected.has(o.value) ? "checked" : ""} />
+              <span>${escapeHtml(o.label)}</span>
+            </label>`).join("")}
+        </div>
+        <div class="current-value">Selected: <span class="val" id="curVal">${escapeHtml(optionLabel(node, [...selected]))}</span></div>`;
+      host.querySelectorAll("input").forEach((inp) => {
+        inp.onchange = () => {
+          const vals = [...host.querySelectorAll("input:checked")].map((x) => x.value);
+          app.runnerValue = vals;
+          document.getElementById("curVal").textContent = optionLabel(node, vals);
+        };
+      });
+    } else if (ft === "toggle") {
+      const onVal = (node.options[0] && node.options[0].value) || "yes";
+      const offVal = (node.options[1] && node.options[1].value) || "no";
+      const isOn = app.runnerValue === onVal;
+      const label = isOn
+        ? ((node.options[0] && node.options[0].label) || "On")
+        : ((node.options[1] && node.options[1].label) || "Off");
+      host.innerHTML = `
+        <div class="toggle-wrap">
+          <button type="button" class="toggle-switch ${isOn ? "on" : ""}" id="tog" aria-pressed="${isOn}"></button>
+          <span class="toggle-label" id="togLabel">${escapeHtml(label)}</span>
+        </div>
+        <div class="current-value">Current: <span class="val">${escapeHtml(label)}</span></div>`;
+      host.querySelector("#tog").onclick = () => {
+        app.runnerValue = app.runnerValue === onVal ? offVal : onVal;
+        mountControl(node);
+      };
+    } else if (ft === "cycle") {
+      const opts = node.options || [];
+      let idx = opts.findIndex((o) => o.value === app.runnerValue);
+      if (idx < 0) idx = 0;
+      const cur = opts[idx] || { label: "—", value: "" };
+      host.innerHTML = `
+        <button type="button" class="cycle-btn" id="cycleBtn">${escapeHtml(cur.label)}</button>
+        <div class="cycle-hint">Tap to cycle choices</div>
+        <div class="current-value">Current: <span class="val">${escapeHtml(cur.label)}</span></div>`;
+      host.querySelector("#cycleBtn").onclick = () => {
+        const next = (idx + 1) % opts.length;
+        app.runnerValue = opts[next].value;
+        mountControl(node);
+      };
+    } else if (ft === "select") {
+      host.innerHTML = `
+        <select class="runner-select" id="sel">
+          ${(node.options || []).map((o) =>
+            `<option value="${escapeHtml(o.value)}" ${o.value === app.runnerValue ? "selected" : ""}>${escapeHtml(o.label)}</option>`
+          ).join("")}
+        </select>
+        <div class="current-value">Current: <span class="val" id="curVal">${escapeHtml(optionLabel(node, app.runnerValue))}</span></div>`;
+      host.querySelector("#sel").onchange = (e) => {
+        app.runnerValue = e.target.value;
+        document.getElementById("curVal").textContent = optionLabel(node, app.runnerValue);
+      };
+    } else if (ft === "slider") {
+      const min = (node.slider && node.slider.min) ?? 0;
+      const max = (node.slider && node.slider.max) ?? 10;
+      const step = (node.slider && node.slider.step) ?? 1;
+      const val = Number(app.runnerValue);
+      const band = sliderBand(node, val);
+      host.innerHTML = `
+        <div class="slider-wrap">
+          <input type="range" id="rng" min="${min}" max="${max}" step="${step}" value="${val}" />
+          <div class="slider-labels"><span>${min}</span><span>${max}</span></div>
+        </div>
+        <div class="current-value">Current: <span class="val" id="curVal">${val}${band ? " · " + band.label : ""}</span></div>`;
+      host.querySelector("#rng").oninput = (e) => {
+        app.runnerValue = Number(e.target.value);
+        const b = sliderBand(node, app.runnerValue);
+        document.getElementById("curVal").textContent =
+          app.runnerValue + (b ? " · " + b.label : "");
+      };
+    }
+  }
+
+  function runnerNext(run, wf, node) {
+    if (run.answers.length === 0 && !applyRunMetaFromInputs(run)) return;
+    migrateInfoToOutcome(node);
+    if (node.kind === "outcome" && !isTerminalOutcome(node)) {
+      const nextId = node.next;
+      if (!nextId || !wf.nodes[nextId]) {
+        toast("Next step missing");
+        return;
+      }
+      run.answers.push({
+        nodeId: node.id,
+        title: node.title,
+        prompt: node.prompt,
+        value: "checkpoint",
+        display: "Evidence checkpoint reviewed",
+        routeReason: `Continue → ${nodeLabel(wf.nodes[nextId])}`
+      });
+      run.currentNodeId = nextId;
+      saveRun(run);
+      const next = wf.nodes[nextId];
+      app.runnerValue = initRunnerValue(next);
+      render();
+      return;
+    }
+
+    let value = app.runnerValue;
+    if (node.fieldType === "checkbox") {
+      value = Array.isArray(value) ? value : [];
+    }
+    if (node.fieldType !== "checkbox" && (value === undefined || value === null || value === "")) {
+      toast("Choose an answer");
+      return;
+    }
+
+    const { nextId, reason } = resolveRouteDetail(wf, node, run, value);
+    if (!nextId || !wf.nodes[nextId]) {
+      toast("No matching rule / ELSE — check routing rules");
+      return;
+    }
+    run.answers.push({
+      nodeId: node.id,
+      title: node.title,
+      prompt: node.prompt,
+      value,
+      display: optionLabel(node, value),
+      routeReason: reason
+    });
+    run.currentNodeId = nextId;
+    saveRun(run);
+    const next = wf.nodes[nextId];
+    app.runnerValue = initRunnerValue(next);
+    render();
+  }
+
+  function runnerBack(run, wf) {
+    if (!run.answers.length) return;
+    const last = run.answers.pop();
+    run.currentNodeId = last.nodeId;
+    run.status = "in_progress";
+    run.actions = [];
+    delete run.completedAt;
+    saveRun(run);
+    const node = wf.nodes[run.currentNodeId];
+    app.runnerValue = last.value != null ? deepClone(last.value) : initRunnerValue(node);
+    render();
+  }
+
+  function renderEndScreen(run, wf, node) {
+    const outcome = node && isTerminalOutcome(node) ? node : wf.nodes[run.currentNodeId];
+    if (outcome && outcome.kind === "outcome") normalizeOutcome(outcome);
+    const actions = (outcome && outcome.actions) || run.actions || [];
+    if (!run.actionMarks) run.actionMarks = {};
+    const lastAnswer = run.answers.length ? run.answers[run.answers.length - 1] : null;
+    const arrivalReason = lastAnswer && lastAnswer.routeReason ? lastAnswer.routeReason : "";
+
+    document.getElementById("app").innerHTML = `
+      <div class="runner end-screen">
+        <div class="runner-progress">
+          <span>${escapeHtml(wf.name)}${run.caseNumber || run.userName ? " · " + escapeHtml(runDisplayTitle(run)) : ""}</span>
+          <span class="tag ok">Complete</span>
+        </div>
+        <div class="panel runner-card">
+          ${arrivalReason ? `<p class="route-reason arrival">${escapeHtml(arrivalReason)}</p>` : ""}
+          <div class="runner-title">${escapeHtml(runDisplayTitle(run))}</div>
+          <p class="muted" style="margin:0 0 10px;font-size:0.88rem">
+            ${run.userName ? escapeHtml(run.userName) : "—"}${run.caseNumber ? " · Case " + escapeHtml(run.caseNumber) : ""}
+          </p>
+          <h2 class="runner-prompt">${escapeHtml((outcome && outcome.prompt) || "Complete")}</h2>
+          ${outcome && outcome.guidance ? `<div class="runner-guidance">${escapeHtml(outcome.guidance)}</div>` : ""}
+          ${outcome && outcome.imageUrl ? `<img class="outcome-image" src="${escapeHtml(outcome.imageUrl)}" alt="" />` : ""}
+          ${(outcome && outcome.links && outcome.links.length) ? `
+            <div class="runner-links">
+              ${outcome.links.map((l) => `<a href="${escapeHtml(l.url)}" target="_blank" rel="noopener">${escapeHtml(l.label || l.url)}</a>`).join("")}
+            </div>` : ""}
+
+          <div class="summary-block">
+            <h3>Flow path</h3>
+            <ul class="path-list">
+              ${run.answers.map((a) => pathListItemHtml(a)).join("") || "<li class='muted'>No answers recorded</li>"}
+            </ul>
+          </div>
+
+          <div class="summary-block" id="actionsBlock">
+            <h3>Evidence / actions for key questions</h3>
+            <ul class="actions-list">
+              ${actions.length
+                ? renderActionsListHtml(run, outcome.id, actions)
+                : "<li class='muted' style='display:block'>No evidence actions listed for this outcome</li>"}
+            </ul>
+          </div>
+
+          <div class="runner-actions no-print">
+            <button class="btn btn-neutral btn-lg" id="btnPrint2">Print summary</button>
+            <button class="btn btn-neutral btn-lg" id="btnExpJson">Export JSON</button>
+            <button class="btn btn-neutral btn-lg" id="btnExpHtml">Export HTML</button>
+            <button class="btn btn-primary btn-lg" id="btnDone">${run.isTest || app.testMode ? "Back to builder" : "Done"}</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    bindActionStatusCycles(document.getElementById("actionsBlock"), run);
+    document.getElementById("btnPrint2").onclick = () => window.print();
+    bindRunExportButtons(document.getElementById("app"), run, wf);
+    document.getElementById("btnDone").onclick = () => {
+      if (run.isTest || app.testMode) {
+        app.testMode = false;
+        openBuilder(wf.id);
+      } else {
+        navigate("library");
+      }
+    };
+  }
+
+  // ─── Dropdowns (click outside to close) ─────────────────
+  function openDropdown(root) {
+    if (!root) return;
+    const panel = root.querySelector("[data-dropdown-panel]");
+    const toggle = root.querySelector("[data-dropdown-toggle]");
+    if (panel) panel.classList.remove("hidden");
+    if (toggle) toggle.setAttribute("aria-expanded", "true");
+    root.classList.add("is-open");
+    if (root.querySelector("#presetDrop")) app.showPresets = true;
+  }
+
+  function closeAllDropdowns() {
+    app.showPresets = false;
+    document.querySelectorAll("[data-dropdown]").forEach((root) => {
+      const panel = root.querySelector("[data-dropdown-panel]");
+      const toggle = root.querySelector("[data-dropdown-toggle]");
+      if (panel) panel.classList.add("hidden");
+      if (toggle) toggle.setAttribute("aria-expanded", "false");
+      root.classList.remove("is-open");
+    });
+  }
+
+  document.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("[data-dropdown]")) return;
+    if (!document.querySelector("[data-dropdown].is-open") &&
+        !document.querySelector("[data-dropdown-panel]:not(.hidden)")) return;
+    closeAllDropdowns();
+  });
+
+  // ─── Render entry ──────────────────────────────────────
+  function render() {
+    if (app.view === "builder") renderBuilder();
+    else if (app.view === "runner") renderRunner();
+    else renderLibrary();
+  }
+
+  // Boot
+  render();
+})();
+  </script>
+</body>
+</html>
