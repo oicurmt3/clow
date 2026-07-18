@@ -437,7 +437,20 @@ Edit `createDemoWorkflow()`. Users must **Reset demo** to reload an existing ins
 
 ---
 
-## 14. Out of scope (intentionally)
+## 14. Security & performance hardening (implemented)
+
+| Concern | Implementation |
+|---------|----------------|
+| XSS via links/images | `isSafeUrl` / `sanitizeUrl` / `renderSafeLink` / `renderSafeImage` — allow `http:`, `https:`, relative paths; block `javascript:`, `data:`, etc. Sanitized on Save, import, and builder blur. |
+| Attribute injection | `escapeAttr` on ids in `data-*` / `<option value>`; import remaps unsafe ids via `hardenFlowIds` |
+| Import abuse | 5 MB file cap (`IMPORT_MAX_BYTES`); backup import confirm + overwrite warning; `normalizeImportedFlow` / `normalizeImportedRun` |
+| Library validate cost | `getCachedValidationErrors` keyed by `wf.id` + `updatedAt`; invalidated on save/delete/import/reset |
+| Run save cost | Debounced `schedulePersistState` (~280 ms); immediate flush on create/complete/delete/workflow save; `pagehide`/`beforeunload` flush; `QuotaExceededError` toast |
+| Brand draft loss | `confirmLeaveBuilder()` shared by Library button and brand home |
+
+---
+
+## 15. Out of scope (intentionally)
 
 - Server sync, auth, multi-user collaboration
 - Uploaded binary assets (images are URLs)

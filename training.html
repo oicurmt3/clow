@@ -991,7 +991,9 @@
             <tr><td>Library empty / Flows missing</td><td>Wrong browser, profile, or private window — storage is per origin. Import a <code>clow-backup.json</code> if you have one.</td></tr>
             <tr><td>Edits disappeared after leaving builder</td><td>Draft was not Saved. Save before Library / Test run handoff when you care about the draft.</td></tr>
             <tr><td>Validate shows issues / Ready missing</td><td>Fix missing ELSE, empty rules, orphan option values (red), unreachable steps, or no End here outcome.</td></tr>
-            <tr><td>Import: Unrecognised / wrong type</td><td>Library Import for backups and path/run JSON; Builder Import for Flow JSON only.</td></tr>
+            <tr><td>Import: Unrecognised / wrong type</td><td>Library Import for backups and path/run JSON; Builder Import for Flow JSON only. Backups ask to confirm before overwrite. Max file size 5 MB.</td></tr>
+            <tr><td>Storage full / save failed</td><td>Export a backup, delete old runs or Flows, then retry. Clow stores everything in this browser.</td></tr>
+            <tr><td>Link or image missing after Save</td><td>Only http(s) and relative URLs are kept; <code>javascript:</code> and similar are blocked.</td></tr>
             <tr><td>Cannot leave step 1</td><td>Entity and case number are both required.</td></tr>
             <tr><td>Finished run not in In progress</td><td>Look under <strong>Completed runs</strong> — use View or Export JSON there.</td></tr>
             <tr><td>Demo answers / steps look wrong</td><td>Reset demo (confirm dialog) to reload the stock sample; only demo runs are cleared.</td></tr>
