@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clow — Training</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #e8eaee;
+      --bg1: #f3f4f7;
+      --bg2: #fafbfc;
+      --surface: #ffffff;
+      --border: #cfd3dc;
+      --border-soft: #e2e5ec;
+      --text: #1c2430;
+      --text-muted: #5c6675;
+      --text-faint: #8a93a3;
+      --primary: #2f5d8c;
+      --primary-hover: #254a70;
+      --primary-soft: #e8f0f8;
+      --secondary: #4a5568;
+      --secondary-hover: #3a4352;
+      --success: #2d6a4f;
+      --success-soft: #e8f5ef;
+      --warn: #9a6b1f;
+      --warn-soft: #faf3e4;
+      --shadow: 0 1px 2px rgba(28, 36, 48, 0.06), 0 4px 16px rgba(28, 36, 48, 0.06);
+      --radius: 10px;
+      --radius-sm: 6px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --font-display: "Source Serif 4", Georgia, serif;
+      --header-h: 56px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(47, 93, 140, 0.08), transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, rgba(45, 106, 79, 0.06), transparent 50%),
+        linear-gradient(180deg, var(--bg1) 0%, var(--bg0) 100%);
+      background-attachment: fixed;
+    }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; border: none; background: none; }
+    a { color: var(--primary); }
+    h1, h2, h3 { font-family: var(--font-display); font-weight: 700; line-height: 1.2; margin: 0; }
+    p { margin: 0; }
+    code {
+      font-family: inherit;
+      font-size: 0.9em;
+      font-weight: 600;
+      background: var(--primary-soft);
+      color: var(--primary);
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 20px;
+      background: rgba(250, 251, 252, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .brand-name {
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand-tag {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 0 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      white-space: nowrap;
+      text-decoration: none;
+      color: inherit;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); color: #fff; }
+    .btn-secondary { background: var(--secondary); color: #fff; }
+    .btn-secondary:hover { background: var(--secondary-hover); color: #fff; }
+    .btn-neutral {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-neutral:hover { background: var(--bg1); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+    }
+    .btn-ghost:hover { background: var(--border-soft); color: var(--text); }
+    .btn-sm { min-height: 30px; padding: 0 10px; font-size: 0.8rem; }
+    .main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px 20px 64px;
+    }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .page-title {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .page-title h1 { font-size: 1.75rem; }
+    .page-title .sub { color: var(--text-muted); margin-top: 4px; font-size: 0.95rem; }
+    /* Training guide */
+    .train-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 840px) {
+      .train-layout { grid-template-columns: 1fr; }
+    }
+    .train-nav {
+      position: sticky;
+      top: calc(var(--header-h) + 16px);
+      padding: 14px 12px;
+    }
+    @media (max-width: 840px) {
+      .train-nav { position: static; }
+    }
+    .train-nav-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-faint);
+      padding: 0 8px 8px;
+    }
+    .train-nav-link {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+    .train-nav-link:hover { background: var(--bg1); color: var(--text); }
+    .train-nav-link.active {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+    .train-nav-group {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-soft);
+    }
+    .train-nav-group:first-child {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+    .train-article {
+      padding: 28px 32px 36px;
+    }
+    @media (max-width: 600px) {
+      .train-article { padding: 20px 16px 28px; }
+    }
+    .train-kicker {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-faint);
+      margin-bottom: 8px;
+    }
+    .train-article h1 {
+      font-size: 1.85rem;
+      margin-bottom: 10px;
+    }
+    .train-lead {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      max-width: 52ch;
+    }
+    .train-article h2 {
+      font-size: 1.25rem;
+      margin: 28px 0 10px;
+    }
+    .train-article h3 {
+      font-family: var(--font);
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin: 18px 0 8px;
+    }
+    .train-article p {
+      margin-bottom: 12px;
+      color: var(--text);
+      max-width: 62ch;
+    }
+    .train-article ul, .train-article ol {
+      margin: 0 0 14px;
+      padding-left: 1.25rem;
+      max-width: 62ch;
+    }
+    .train-article li { margin-bottom: 6px; }
+    .train-article li::marker { color: var(--text-faint); }
+    .train-callout {
+      margin: 18px 0;
+      padding: 14px 16px;
+      background: var(--bg1);
+      border-left: 3px solid var(--primary);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      max-width: 62ch;
+    }
+    .train-callout.ok { border-left-color: var(--success); background: var(--success-soft); }
+    .train-callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+    .train-callout strong { display: block; margin-bottom: 4px; }
+    .train-callout p:last-child { margin-bottom: 0; }
+    .train-steps {
+      counter-reset: tstep;
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px;
+      max-width: 62ch;
+    }
+    .train-steps li {
+      counter-increment: tstep;
+      position: relative;
+      padding: 12px 12px 12px 48px;
+      margin-bottom: 8px;
+      background: var(--bg1);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-soft);
+    }
+    .train-steps li::before {
+      content: counter(tstep);
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .train-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0 20px;
+    }
+    @media (max-width: 640px) {
+      .train-grid { grid-template-columns: 1fr; }
+    }
+    .train-card {
+      padding: 16px;
+      background: var(--bg1);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+    }
+    .train-card h3 { margin-top: 0; }
+    .train-card p:last-child { margin-bottom: 0; color: var(--text-muted); font-size: 0.92rem; }
+    .train-flow {
+      margin: 14px 0 20px;
+      max-width: 420px;
+      padding: 4px 0;
+    }
+    .train-flow-step {
+      position: relative;
+      padding: 12px 14px 12px 18px;
+      background: var(--bg1);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .train-flow-step + .train-flow-arrow + .train-flow-step { margin-top: 0; }
+    .train-flow-arrow {
+      display: flex;
+      justify-content: center;
+      padding: 4px 0;
+      color: var(--text-faint);
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+    .train-formula {
+      margin: 14px 0 20px;
+      max-width: 520px;
+      padding: 16px 18px;
+      background: linear-gradient(180deg, var(--bg2), var(--bg1));
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .train-formula-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .train-formula-row:last-child { margin-bottom: 0; }
+    .train-formula-label {
+      flex: 0 0 auto;
+      min-width: 3.2rem;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--primary);
+    }
+    .train-formula-label.else { color: var(--secondary); }
+    .train-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .train-chip.soft {
+      background: var(--primary-soft);
+      border-color: transparent;
+      color: var(--primary);
+    }
+    .train-chip.join {
+      background: transparent;
+      border-color: transparent;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      padding: 5px 4px;
+    }
+    .train-formula-note {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border-soft);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .train-example {
+      margin: 14px 0 16px;
+      max-width: 520px;
+      padding: 16px 18px;
+      background: var(--success-soft);
+      border: 1px solid #c5e0d2;
+      border-radius: var(--radius);
+    }
+    .train-example-title {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--success);
+      margin-bottom: 10px;
+    }
+    .train-example-line {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .train-example-line .op {
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.8rem;
+      margin: 0 4px;
+    }
+    .train-example-result {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #c5e0d2;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--success);
+    }
+    .train-link-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0 18px;
+      max-width: 640px;
+    }
+    .train-link-list a {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--bg1);
+      border: 1px solid var(--border-soft);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .train-link-list a:hover {
+      background: var(--primary-soft);
+      border-color: transparent;
+      color: var(--primary);
+    }
+    .train-table {
+      width: 100%;
+      max-width: 720px;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin: 12px 0 20px;
+    }
+    .train-table th, .train-table td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border-soft);
+      vertical-align: top;
+    }
+    .train-table th {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-faint);
+      font-weight: 700;
+    }
+    .train-pager {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-soft);
+    }
+    .train-promo {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, var(--primary-soft), var(--bg2));
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius);
+    }
+    .train-promo h2 {
+      font-size: 1.15rem;
+      margin-bottom: 4px;
+    }
+    .train-promo p {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      max-width: 48ch;
+    }
+    .train-check {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px;
+      max-width: 62ch;
+    }
+    .train-check li {
+      position: relative;
+      padding: 8px 0 8px 28px;
+      border-bottom: 1px dashed var(--border-soft);
+    }
+    .train-check li:last-child { border-bottom: none; }
+    .train-check li::before {
+      content: "☐";
+      position: absolute;
+      left: 0;
+      color: var(--text-faint);
+    }
+
+
+    @media print {
+      .app-header, .no-print { display: none !important; }
+      body { background: #fff; }
+      .panel { box-shadow: none; border: none; }
+      .main { max-width: none; padding: 0; }
+      .train-nav { display: none; }
+      .train-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <a href="index.html" class="brand">
+      <span class="brand-name">Clow</span>
+      <span class="brand-tag">Training guide</span>
+    </a>
+    <div class="header-actions no-print">
+      <a class="btn btn-ghost btn-sm" href="index.html">Open app</a>
+      <button type="button" class="btn btn-primary btn-sm" id="btnPrint">Print chapter</button>
+    </div>
+  </header>
+  <main class="main" id="app"></main>
+  <script>
+(function () {
+  "use strict";
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  const TRAIN_PAGES = [
+    { id: "overview", group: "Start", title: "Welcome", kicker: "Start here" },
+    { id: "concepts", group: "Start", title: "Core concepts", kicker: "Language of Clow" },
+    { id: "library", group: "App tour", title: "Library & data", kicker: "App tour" },
+    { id: "saving", group: "App tour", title: "Saving & backups", kicker: "App tour" },
+    { id: "builder", group: "App tour", title: "Builder basics", kicker: "App tour" },
+    { id: "controls", group: "App tour", title: "Answer controls", kicker: "App tour" },
+    { id: "rules", group: "App tour", title: "IF / THEN rules", kicker: "App tour" },
+    { id: "runner", group: "App tour", title: "Running a path", kicker: "App tour" },
+    { id: "investigate", group: "Build for purpose", title: "Investigation Flows", kicker: "Purpose" },
+    { id: "educate", group: "Build for purpose", title: "Education & training", kicker: "Purpose" },
+    { id: "practice", group: "Practice", title: "Hands-on practice", kicker: "Practice" },
+    { id: "reference", group: "Practice", title: "Quick reference", kicker: "Cheat sheet" }
+  ];
+
+  function trainPageMeta(id) {
+    return TRAIN_PAGES.find((p) => p.id === id) || TRAIN_PAGES[0];
+  }
+
+  function trainContent(id) {
+    const pages = {
+      overview: `
+        <p class="train-lead">Clow (“create + flow”) lets you build Flows: ordered steps that steer people toward relevant, robust evidence against key questions — whether they are investigating a live matter or learning how to think through one.</p>
+        <div class="train-grid">
+          <div class="train-card">
+            <h3>Investigation Flows</h3>
+            <p>Live runbooks (Flows): triage, escalate, gather evidence, and leave a path + action list you can print or export.</p>
+          </div>
+          <div class="train-card">
+            <h3>Education / training Flows</h3>
+            <p>Same engine, teaching intent: branch on judgment, show why a route matched, rehearse “what if” paths safely.</p>
+          </div>
+        </div>
+        <h2>What you will learn</h2>
+        <ul>
+          <li>How the library, builder, and runner fit together</li>
+          <li>How Clow saves Flows, runs, and preferences in this browser</li>
+          <li>How to author questions, outcomes, and evidence actions</li>
+          <li>How IF/THEN AND/OR rules route across current and prior answers</li>
+          <li>Recipes for investigation vs education designs</li>
+          <li>A practice path using the built-in demo</li>
+        </ul>
+        <div class="train-callout">
+          <strong>Where your data lives</strong>
+          <p>Clow has no server account. Flows, runs, and last Entity / case prefs live in this browser’s <code>localStorage</code>. Use Export for files you can keep, share, or move. See <a href="#saving">Saving &amp; backups</a>.</p>
+        </div>
+        <h2>Suggested path</h2>
+        <ol class="train-steps">
+          <li><strong>Concepts</strong> — learn the words Clow uses (key question, step, rule, run, path).</li>
+          <li><strong>App tour</strong> — library → saving → builder → controls → rules → runner.</li>
+          <li><strong>Purpose chapters</strong> — investigation recipe, then education/training recipe.</li>
+          <li><strong>Practice</strong> — run the demo, then duplicate it into your own Flow.</li>
+        </ol>
+        <p>Use the left menu anytime, or bookmark a chapter from the Quick reference page.</p>
+      `,
+      concepts: `
+        <p class="train-lead">Clow is built around one idea: a Flow should obtain relevant, robust evidence against key questions — not generate busywork.</p>
+        <h2>Key terms</h2>
+        <table class="train-table">
+          <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Flow</strong></td><td>A named set of steps you build once and run many times.</td></tr>
+            <tr><td><strong>Key question</strong></td><td>The investigative (or teaching) question that evidence must answer.</td></tr>
+            <tr><td><strong>Question step</strong></td><td>Asks for a choice (radio, checkbox, slider, etc.) then routes with rules.</td></tr>
+            <tr><td><strong>Outcome step</strong></td><td>Checkpoint or ending: guidance, links, image, evidence actions. End here or continue.</td></tr>
+            <tr><td><strong>Rule</strong></td><td>IF conditions (AND/OR) THEN go to a step. First match wins; ELSE is default next.</td></tr>
+            <tr><td><strong>Run</strong></td><td>One walk through a Flow; answers and path are saved.</td></tr>
+            <tr><td><strong>Entity</strong></td><td>Who or what the run is about — person, unit, agency, subject, or team (your convention). Shown on library cards and exports with the case number.</td></tr>
+            <tr><td><strong>Path</strong></td><td>The sequence of answers (and route reasons) for that run.</td></tr>
+            <tr><td><strong>Route reason</strong></td><td>Human line explaining which rule or ELSE chose the next step.</td></tr>
+          </tbody>
+        </table>
+        <h2>Mental model</h2>
+        <div class="train-flow" aria-label="How routing works">
+          <div class="train-flow-step">Answer the current step</div>
+          <div class="train-flow-arrow" aria-hidden="true">↓</div>
+          <div class="train-flow-step">Build the answer map (prior answers + current)</div>
+          <div class="train-flow-arrow" aria-hidden="true">↓</div>
+          <div class="train-flow-step">Evaluate rules in order — first true wins</div>
+          <div class="train-flow-arrow" aria-hidden="true">↓</div>
+          <div class="train-flow-step">If none match, use ELSE (default next)</div>
+          <div class="train-flow-arrow" aria-hidden="true">↓</div>
+          <div class="train-flow-step">Show the next step + matched-rule reason</div>
+        </div>
+        <div class="train-callout ok">
+          <strong>Design tip</strong>
+          <p>Write steps so each one has one job. Put branching logic in rules, not in long prose prompts.</p>
+        </div>
+      `,
+      library: `
+        <p class="train-lead">The library is home: create Flows, resume or view runs, import/export, and open this training guide.</p>
+        <h2>What you can do</h2>
+        <ul>
+          <li><strong>New Flow</strong> — blank starter with a question and an end outcome (saved immediately).</li>
+          <li><strong>Run / Edit / Duplicate / Export</strong> — on each Flow card.</li>
+          <li><strong>Reset demo</strong> — confirms, then restores the sample Flow and deletes that demo’s runs only.</li>
+          <li><strong>Import / Export all</strong> — backup or move Flows and runs as JSON.</li>
+          <li><strong>In progress</strong> — Resume, Export JSON, or Delete unfinished runs.</li>
+          <li><strong>Completed runs</strong> — View the end screen, Export JSON, or Delete finished paths.</li>
+        </ul>
+        <h2>Sharing</h2>
+        <p>Export a single Flow JSON for a colleague. They use <strong>Import</strong> on their copy of Clow. How storage, Save, and file types work is covered in <a href="#saving">Saving &amp; backups</a>.</p>
+        <div class="train-callout warn">
+          <strong>Browser storage</strong>
+          <p>The library subtitle reminds you: data stays in this browser. Clearing site data wipes Flows and runs — Export all before major cleanup or when moving machines.</p>
+        </div>
+      `,
+      saving: `
+        <p class="train-lead">Clow is a single-page app with no login. Almost everything you create is written into this browser; files you Export are the portable copies.</p>
+        <h2>Where data is stored</h2>
+        <table class="train-table">
+          <thead><tr><th>Store</th><th>What it holds</th></tr></thead>
+          <tbody>
+            <tr><td><code>clow.v1</code></td><td>All <strong>Flows</strong> and all <strong>runs</strong> (answers, path, action marks, Entity, case number, status).</td></tr>
+            <tr><td><code>clow.lastRunner</code></td><td>Last <strong>Entity</strong> and <strong>case number</strong> used, so the next run can prefill the first step.</td></tr>
+            <tr><td>This training page</td><td>Static HTML only — not saved with your Flows. Bookmark chapters via the URL hash (e.g. <code>#saving</code>).</td></tr>
+          </tbody>
+        </table>
+        <div class="train-callout">
+          <strong>Same site, same data</strong>
+          <p>Storage is per browser profile and per origin (e.g. <code>https://sandgroper.net</code>). Another browser, device, or private window will not see your library until you Import a backup.</p>
+        </div>
+        <h2>What saves automatically</h2>
+        <table class="train-table">
+          <thead><tr><th>Action</th><th>What is written</th></tr></thead>
+          <tbody>
+            <tr><td><strong>New Flow</strong></td><td>Blank Flow is created and stored immediately, then opened in the builder.</td></tr>
+            <tr><td><strong>Duplicate</strong></td><td>Copy is stored as a new Flow right away.</td></tr>
+            <tr><td><strong>Delete Flow</strong></td><td>Flow removed; its runs are removed too.</td></tr>
+            <tr><td><strong>Reset demo</strong></td><td>Demo Flow replaced with the stock sample; only demo runs are cleared.</td></tr>
+            <tr><td><strong>Start / resume a run</strong></td><td>Run record created or updated in storage.</td></tr>
+            <tr><td><strong>Next / Back / Continue</strong></td><td>Answers, current step, and route reasons saved after each move.</td></tr>
+            <tr><td><strong>Evidence action cycle</strong></td><td>To do / Done / N/A marks saved on the run.</td></tr>
+            <tr><td><strong>Entity + case on first step</strong></td><td>Written into the run name when you leave step 1; also remembered for the next run.</td></tr>
+            <tr><td><strong>Import (library)</strong></td><td>Backup, Flow, or run JSON merged into local storage immediately.</td></tr>
+          </tbody>
+        </table>
+        <h2>What needs Save (builder)</h2>
+        <p>Editing a Flow works on a <strong>draft</strong> in memory. The library still shows the last saved version until you press <strong>Save</strong>.</p>
+        <ul>
+          <li><strong>Save</strong> — writes the draft into <code>clow.v1</code> (steps, rules, options, guidance, links, images URLs, etc.).</li>
+          <li><strong>Leave without Save</strong> — Clow warns that unsaved builder changes will be lost.</li>
+          <li><strong>Validate / Test run</strong> — do not replace Save; Test run answers are stored as a run (like a normal run), but Flow edits still need Save.</li>
+          <li><strong>Builder Import → Replace draft</strong> — updates the draft only; press Save to keep it. <strong>Add as new</strong> stores a separate Flow immediately.</li>
+        </ul>
+        <div class="train-callout warn">
+          <strong>Draft vs library</strong>
+          <p>If you edit for an hour and never Save, closing the tab or returning to the library (after dismissing the warning) can discard those edits. Export or Save before long breaks.</p>
+        </div>
+        <h2>Export file types</h2>
+        <table class="train-table">
+          <thead><tr><th>Export</th><th>Typical file</th><th>Contains</th></tr></thead>
+          <tbody>
+            <tr><td>Library <strong>Export all</strong></td><td><code>clow-backup.json</code></td><td>Every Flow + every run (full machine backup).</td></tr>
+            <tr><td>Card / builder <strong>Export</strong> Flow</td><td><code>clow-flow-….json</code></td><td>One Flow definition only (no runs).</td></tr>
+            <tr><td>Runner <strong>Export JSON</strong></td><td><code>clow-path-….json</code></td><td>That run’s path, answers, route reasons, Entity, case, action marks (mid-run or complete).</td></tr>
+            <tr><td>Runner <strong>Export HTML</strong></td><td>HTML report</td><td>Printable path report for the same run snapshot.</td></tr>
+          </tbody>
+        </table>
+        <h2>Import rules of thumb</h2>
+        <ul>
+          <li><strong>Library → Import</strong> — accepts full backups, single Flows, and run/path JSON.</li>
+          <li><strong>Builder → Import</strong> — Flow JSON only (Replace draft or Add as new). Backups and path exports belong in the library.</li>
+          <li>Importing a backup <strong>merges by id</strong> (same Flow/run ids overwrite). Export first if you might need the old copy.</li>
+        </ul>
+        <h2>What is not persisted on a server</h2>
+        <ul>
+          <li>No cloud sync, accounts, or multi-user sharing unless you pass Export files yourself.</li>
+          <li>Print uses the browser print dialog; it does not upload anything.</li>
+          <li>Images in Flows are URLs you provide — Clow stores the URL string, not the image file.</li>
+        </ul>
+        <h2>Finding finished runs</h2>
+        <p>Completed runs appear under <strong>Completed runs</strong> on the library. Open <strong>View</strong> for the end screen (path, actions, Print, Export). You can also Export JSON from the library card without reopening the runner.</p>
+        <div class="train-callout ok">
+          <strong>Safe habit</strong>
+          <p>After authoring a live Flow: Save → Validate → Export Flow (or Export all). After important field runs: Export JSON or HTML from the runner (or library) so the path survives browser cleanup.</p>
+        </div>
+      `,
+      builder: `
+        <p class="train-lead">The builder is where you author steps. Edits live in a draft until you press <strong>Save</strong>. Test runs auto-save their answers as runs — see <a href="#saving">Saving &amp; backups</a>.</p>
+        <h2>Layout</h2>
+        <ul>
+          <li><strong>Steps sidebar</strong> — ordered list; drag ⋮⋮ to reorder; select a step to edit.</li>
+          <li><strong>Step editor</strong> — title, prompt, guidance, links, control type / outcomes.</li>
+          <li><strong>Validate</strong> — checks missing ELSE, empty rules, unreachable steps, missing end.</li>
+          <li><strong>Test run</strong> — walk the flow without leaving the builder context.</li>
+        </ul>
+        <h2>Question vs outcome</h2>
+        <div class="train-grid">
+          <div class="train-card">
+            <h3>Question</h3>
+            <p>Choice control + routing rules + ELSE. Investigator answers; Clow picks the next step.</p>
+          </div>
+          <div class="train-card">
+            <h3>Outcome</h3>
+            <p><em>End here</em> finishes the run. <em>Continue</em> is a checkpoint (guidance, image, actions) then a next step.</p>
+          </div>
+        </div>
+        <h2>Authoring checklist</h2>
+        <ul class="train-check">
+          <li>Name the Flow for the job (e.g. “Complaint triage — evidence first”).</li>
+          <li>Set a clear start step.</li>
+          <li>Every question has ELSE (default next).</li>
+          <li>At least one terminal outcome (End here).</li>
+          <li>Guidance explains why the step matters for the key question.</li>
+          <li>Validate shows Ready before you share.</li>
+        </ul>
+      `,
+      controls: `
+        <p class="train-lead">Answers are choice-based (no free text). Pick the control that matches how people should decide.</p>
+        <table class="train-table">
+          <thead><tr><th>Control</th><th>Use when</th><th>Routing tip</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Radio</strong></td><td>One of several exclusive options</td><td><code>equals</code> / <code>≠</code></td></tr>
+            <tr><td><strong>Toggle</strong></td><td>Yes/No or binary gate</td><td>Same as radio (two options)</td></tr>
+            <tr><td><strong>Cycle</strong></td><td>Ordered scale (Low → Med → High)</td><td><code>equals</code> per level</td></tr>
+            <tr><td><strong>Select</strong></td><td>Longer option lists</td><td><code>equals</code></td></tr>
+            <tr><td><strong>Checkbox</strong></td><td>Select all that apply</td><td><code>includes</code> / <code>excludes</code></td></tr>
+            <tr><td><strong>Slider</strong></td><td>Numeric gap / intensity with bands</td><td><code>in band</code> using band keys</td></tr>
+          </tbody>
+        </table>
+        <h2>Options</h2>
+        <p>Each option has a <strong>label</strong> (what people see) and a <strong>value</strong> (id used in rules). Values auto-fill from the step title and option label. Drag options to reorder. <strong>Make rule</strong> creates a one-condition IF → THEN quickly.</p>
+        <div class="train-callout ok">
+          <strong>Rename safely</strong>
+          <p>Labels are safe to rename. If the value is still auto-style (or you edit the value / band key), Clow updates every matching condition across the Flow. Orphan values are highlighted in red and flagged by Validate.</p>
+        </div>
+      `,
+      rules: `
+        <p class="train-lead">Routing rules are the power of Clow: ordered IF conditions (joined with AND or OR) THEN go to a step. First match wins. ELSE is the fallback.</p>
+        <h2>Condition shape</h2>
+        <div class="train-formula" aria-label="Rule shape">
+          <div class="train-formula-row">
+            <span class="train-formula-label">If</span>
+            <span class="train-chip soft">step</span>
+            <span class="train-chip soft">operator</span>
+            <span class="train-chip soft">value</span>
+          </div>
+          <div class="train-formula-row">
+            <span class="train-formula-label"></span>
+            <span class="train-chip join">AND / OR</span>
+            <span class="train-chip">more conditions…</span>
+          </div>
+          <div class="train-formula-row">
+            <span class="train-formula-label">Then</span>
+            <span class="train-chip">go to step</span>
+          </div>
+          <div class="train-formula-row">
+            <span class="train-formula-label else">Else</span>
+            <span class="train-chip">default next step</span>
+          </div>
+          <p class="train-formula-note">First matching rule wins. ELSE runs only when no IF rule matches.</p>
+        </div>
+        <h2>Operators</h2>
+        <ul>
+          <li><strong>equals / ≠</strong> — scalar answers (radio, toggle, cycle, select)</li>
+          <li><strong>includes / excludes</strong> — checkbox arrays</li>
+          <li><strong>in band</strong> — slider band via route key (Low / Medium / High, etc.)</li>
+        </ul>
+        <h2>Prior answers</h2>
+        <p>A condition’s step can be the <strong>current</strong> question or any <strong>earlier</strong> question already answered in the run. That enables patterns like:</p>
+        <div class="train-example" aria-label="Example AND rule">
+          <div class="train-example-title">Example · AND across two steps</div>
+          <div class="train-example-line">Evidence on hand <span class="op">includes</span> None yet</div>
+          <div class="train-example-line"><span class="op">AND</span> Evidence weight <span class="op">equals</span> High</div>
+          <div class="train-example-result">→ Escalate early</div>
+        </div>
+        <p>That pattern is in the demo on the “Evidence on hand” step.</p>
+        <h2>Authoring tips</h2>
+        <ol class="train-steps">
+          <li>Put the most specific rules first; leave broad cases for later rules or ELSE.</li>
+          <li>Use <strong>Make rule</strong> on an option for simple trees, then edit for AND/OR.</li>
+          <li>Drag rules to reorder — order is evaluation order.</li>
+          <li>Always set ELSE so unexpected combinations still progress.</li>
+        </ol>
+        <div class="train-callout ok">
+          <strong>Training gold</strong>
+          <p>When someone runs the flow, Clow shows <em>Matched rule N: …</em> or <em>ELSE → …</em> so they learn why the path moved. That line also appears in Path so far and the end summary.</p>
+        </div>
+      `,
+      runner: `
+        <p class="train-lead">A run is one walk through a Flow. Investigators and learners use the same runner. Progress is saved automatically after each step.</p>
+        <h2>First step</h2>
+        <p>At the top of step 1, enter <strong>Entity</strong> (who or what the run is about — person, unit, agency, subject, or team) and <strong>case number</strong> (required before Next). They name the run in the library and appear on exports. Going <strong>Back</strong> to step 1 lets you edit them again. Last values are remembered for the next run.</p>
+        <h2>During a run</h2>
+        <ul>
+          <li><strong>Next / Continue</strong> — submit the answer (or leave a checkpoint) and follow routing; the run is written to storage.</li>
+          <li><strong>Back</strong> — undo the last answer and return to that step.</li>
+          <li><strong>Arrival reason</strong> — muted banner: which rule or ELSE brought you here.</li>
+          <li><strong>Path so far</strong> — answers plus route reasons.</li>
+          <li><strong>Evidence actions</strong> — cycle <em>To do → Done → N/A</em> on checkpoints and endings (saved on the run).</li>
+          <li><strong>Export JSON / Export HTML</strong> — available anytime in the runner header (mid-path snapshot or full path).</li>
+        </ul>
+        <h2>At the end</h2>
+        <p>Terminal outcomes show the full Flow path, evidence actions, Print, and the same Export options. Finished runs appear under <strong>Completed runs</strong> in the library — View, Export JSON, or Delete. They stay in local storage until you delete them or clear site data.</p>
+        <div class="train-callout">
+          <strong>Test run from builder</strong>
+          <p>Use Test run while editing. It is marked as a test, stores like any other run, and returns you to the builder when you leave. Flow edits still need <strong>Save</strong>.</p>
+        </div>
+      `,
+      investigate: `
+        <p class="train-lead">Design investigation Flows so each path obtains the right evidence for the key question — with clear escalation when the gap is too large.</p>
+        <h2>Recipe</h2>
+        <ol class="train-steps">
+          <li><strong>Gate on the key question</strong> — Yes/No (or similar): is there a key question needing further evidence?</li>
+          <li><strong>Weight criticality</strong> — cycle or select Low / Medium / High to set evidence standards.</li>
+          <li><strong>Map evidence on hand</strong> — checkbox of sources; include “None yet”.</li>
+          <li><strong>AND escalate early</strong> — e.g. none on hand AND high weight → urgent outcome.</li>
+          <li><strong>Measure the gap</strong> — slider bands for remaining evidence gap; high band → escalate.</li>
+          <li><strong>Checkpoint</strong> — continuing outcome with actions to obtain/preserve evidence.</li>
+          <li><strong>Terminal outcomes</strong> — light close vs full plan vs escalation brief.</li>
+        </ol>
+        <h2>Writing for the field</h2>
+        <ul>
+          <li>Prompts should be decision questions, not essays.</li>
+          <li>Guidance should say what good evidence looks like for that step.</li>
+          <li>Actions should be concrete (“Photograph scene before disturbance”), not vague (“Be thorough”).</li>
+          <li>Links can point to SOPs, forms, or reference pages (https).</li>
+        </ul>
+        <div class="train-callout warn">
+          <strong>Don’t encode secrets</strong>
+          <p>Clow is local and shareable as JSON. Keep operationally sensitive credentials out of guidance and links.</p>
+        </div>
+        <h2>Validation before go-live</h2>
+        <ul class="train-check">
+          <li>Walk every major branch (happy path, escalate, early exit).</li>
+          <li>Confirm ELSE never dead-ends without an end outcome somewhere reachable.</li>
+          <li>Check route reasons read clearly for audit/diary use.</li>
+          <li>Export a backup of the ready Flow.</li>
+        </ul>
+      `,
+      educate: `
+        <p class="train-lead">Education and training Flows use the same builder — but you design for judgment practice, feedback, and safe failure.</p>
+        <h2>How training differs from ops</h2>
+        <table class="train-table">
+          <thead><tr><th></th><th>Investigation</th><th>Education / training</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Goal</strong></td><td>Obtain evidence now</td><td>Build transferable judgment</td></tr>
+            <tr><td><strong>Tone</strong></td><td>Directive, concise</td><td>Explanatory, reflective</td></tr>
+            <tr><td><strong>Branches</strong></td><td>Operational necessity</td><td>Deliberate “traps” and contrast cases</td></tr>
+            <tr><td><strong>Outcomes</strong></td><td>Actions to execute</td><td>Debrief + what good looked like</td></tr>
+            <tr><td><strong>Route reasons</strong></td><td>Audit trail</td><td>Teaching feedback</td></tr>
+          </tbody>
+        </table>
+        <h2>Recipe</h2>
+        <ol class="train-steps">
+          <li><strong>Frame a scenario</strong> — opening outcome (Continue) with facts, image, and learning objective.</li>
+          <li><strong>Force a judgment</strong> — question with plausible distractors, not only the “right” option.</li>
+          <li><strong>Branch with prior context</strong> — AND/OR rules that combine earlier choices (e.g. weak evidence + high stakes).</li>
+          <li><strong>Debrief outcomes</strong> — separate endings for sound path vs premature close vs over-escalation; each explains why.</li>
+          <li><strong>Action list as practice</strong> — “To do” items become rehearsal checklist; Done/N/A marks progress in the lesson.</li>
+          <li><strong>Replay</strong> — ask learners to run twice with different answers and compare path reasons.</li>
+        </ol>
+        <h2>Facilitator tips</h2>
+        <ul>
+          <li>Duplicate the demo, rename it, and retarget prompts to your domain.</li>
+          <li>Keep first sessions short (5–8 steps) so discussion time beats click time.</li>
+          <li>Project the end-screen path and ask: “Which rule fired? Was ELSE correct?”</li>
+          <li>Export runs if you want a record of classroom attempts (local only unless they export).</li>
+        </ul>
+        <div class="train-callout ok">
+          <strong>Same artefact, two jobs</strong>
+          <p>A strong investigation flow often becomes a training flow by adding debrief outcomes and richer guidance — you do not need a separate product mode.</p>
+        </div>
+      `,
+      practice: `
+        <p class="train-lead">Learn by doing. Use the built-in demo, then build a tiny flow of your own.</p>
+        <h2>Exercise A — Run the demo as investigation</h2>
+        <ol class="train-steps">
+          <li>Library → <strong>Reset demo</strong> → open <strong>Demo · Extensive evidence Flow</strong> → <strong>Run</strong>.</li>
+          <li>Continue the brief; Yes at the gate; choose <strong>Field / operational</strong>.</li>
+          <li>Pick <strong>Safety / harm</strong>, set urgency to <strong>Critical</strong>, then on Evidence choose <strong>None yet</strong>.</li>
+          <li>Read the arrival banner — it should cite an AND escalate rule. Review Flow path + route reasons.</li>
+        </ol>
+        <h2>Exercise B — Contrast branches</h2>
+        <ol class="train-steps">
+          <li>Second run: <strong>Training rehearsal</strong>, low urgency, some evidence (not None), keep gap Low → aim for the training debrief ending.</li>
+          <li>Third run: <strong>Financial</strong> + include <strong>Records</strong> + High confidence + Low gap → records-strong path.</li>
+          <li>Mark checkpoint actions To do → Done. Discuss which rules fired and why paths diverged.</li>
+        </ol>
+        <h2>Exercise C — Author a 4-step Flow</h2>
+        <ol class="train-steps">
+          <li>New Flow → rename it.</li>
+          <li>Question 1: toggle gate. Question 2: cycle Low/Med/High.</li>
+          <li>Add an AND rule on Q2 that also checks Q1 (or add a checkbox step with a two-step AND).</li>
+          <li>Two terminal outcomes: “Close light” and “Escalate”. Validate → Test run.</li>
+        </ol>
+        <h2>Done when</h2>
+        <ul class="train-check">
+          <li>You can explain IF / THEN / ELSE without notes.</li>
+          <li>You have seen a matched AND rule in the runner banner.</li>
+          <li>You have saved or exported at least one Flow you authored.</li>
+        </ul>
+        <p style="margin-top:16px">
+          <a class="btn btn-primary" href="index.html">Open app · try the demo</a>
+          <a class="btn btn-secondary" href="index.html" style="margin-left:8px">Create a Flow</a>
+        </p>
+      `,
+      reference: `
+        <p class="train-lead">Short cheat sheet for building and facilitating with Clow.</p>
+        <h2>Button map</h2>
+        <table class="train-table">
+          <thead><tr><th>Place</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>Library</td><td>New, Run, Edit, Duplicate, Export, Import, Export all, Training, Reset demo; runs: Resume/View, Export JSON, Delete</td></tr>
+            <tr><td>Builder</td><td>Save, Validate, Test run, Import/Export Flow, Add step, Add rule, Make rule, ELSE</td></tr>
+            <tr><td>Runner</td><td>Entity + case (step 1), Next / Continue, Back, action cycle, Print, Export JSON/HTML</td></tr>
+          </tbody>
+        </table>
+        <h2>Save cheat sheet</h2>
+        <ul>
+          <li><strong>Flows</strong> — Save in builder; New/Duplicate/Import write immediately</li>
+          <li><strong>Runs</strong> — auto-save each Next/Back/action mark</li>
+          <li><strong>Prefs</strong> — last Entity + case in <code>clow.lastRunner</code></li>
+          <li><strong>Files</strong> — Export all / Flow / path JSON or HTML (see <a href="#saving">Saving &amp; backups</a>)</li>
+        </ul>
+        <h2>Rule evaluation order</h2>
+        <ol>
+          <li>Rules top → bottom</li>
+          <li>Within a rule: AND = all true; OR = any true</li>
+          <li>First matching rule with a THEN wins</li>
+          <li>Otherwise ELSE (default next)</li>
+        </ol>
+        <h2>Good defaults</h2>
+        <ul>
+          <li>One purpose per step; one headline prompt</li>
+          <li>Specific rules first; ELSE last resort</li>
+          <li>Always at least one End here outcome</li>
+          <li>Export before major edits on a live Flow</li>
+        </ul>
+        <h2>Troubleshooting</h2>
+        <table class="train-table">
+          <thead><tr><th>Symptom</th><th>What to try</th></tr></thead>
+          <tbody>
+            <tr><td>Library empty / Flows missing</td><td>Wrong browser, profile, or private window — storage is per origin. Import a <code>clow-backup.json</code> if you have one.</td></tr>
+            <tr><td>Edits disappeared after leaving builder</td><td>Draft was not Saved. Save before Library / Test run handoff when you care about the draft.</td></tr>
+            <tr><td>Validate shows issues / Ready missing</td><td>Fix missing ELSE, empty rules, orphan option values (red), unreachable steps, or no End here outcome.</td></tr>
+            <tr><td>Import: Unrecognised / wrong type</td><td>Library Import for backups and path/run JSON; Builder Import for Flow JSON only.</td></tr>
+            <tr><td>Cannot leave step 1</td><td>Entity and case number are both required.</td></tr>
+            <tr><td>Finished run not in In progress</td><td>Look under <strong>Completed runs</strong> — use View or Export JSON there.</td></tr>
+            <tr><td>Demo answers / steps look wrong</td><td>Reset demo (confirm dialog) to reload the stock sample; only demo runs are cleared.</td></tr>
+          </tbody>
+        </table>
+        <h2>Jump to a chapter</h2>
+        <div class="train-link-list">
+          <a href="#overview">Welcome</a>
+          <a href="#concepts">Core concepts</a>
+          <a href="#library">Library &amp; data</a>
+          <a href="#saving">Saving &amp; backups</a>
+          <a href="#builder">Builder basics</a>
+          <a href="#controls">Answer controls</a>
+          <a href="#rules">IF / THEN rules</a>
+          <a href="#runner">Running a path</a>
+          <a href="#investigate">Investigation Flows</a>
+          <a href="#educate">Education &amp; training</a>
+          <a href="#practice">Hands-on practice</a>
+          <a href="#reference">Quick reference</a>
+        </div>
+        <div class="train-callout">
+          <strong>Clow purpose line</strong>
+          <p>Key questions → robust evidence. Every step should earn its place against that line.</p>
+        </div>
+      `
+    };
+    return pages[id] || pages.overview;
+  }
+
+  function currentPageId() {
+    const raw = String(location.hash || "").replace(/^#/, "");
+    if (TRAIN_PAGES.some((p) => p.id === raw)) return raw;
+    return "overview";
+  }
+
+  function goPage(id) {
+    const pageId = TRAIN_PAGES.some((p) => p.id === id) ? id : "overview";
+    if (location.hash !== "#" + pageId) location.hash = pageId;
+    else render();
+  }
+
+  function render() {
+    const pageId = currentPageId();
+    const meta = trainPageMeta(pageId);
+    const idx = TRAIN_PAGES.findIndex((p) => p.id === pageId);
+    const prev = idx > 0 ? TRAIN_PAGES[idx - 1] : null;
+    const next = idx < TRAIN_PAGES.length - 1 ? TRAIN_PAGES[idx + 1] : null;
+
+    let lastGroup = null;
+    const navHtml = TRAIN_PAGES.map((p) => {
+      let groupHtml = "";
+      if (p.group !== lastGroup) {
+        lastGroup = p.group;
+        groupHtml = '<div class="train-nav-group"><div class="train-nav-label">' + escapeHtml(p.group) + "</div></div>";
+      }
+      return groupHtml +
+        '<button type="button" class="train-nav-link ' + (p.id === pageId ? "active" : "") +
+        '" data-trainpage="' + p.id + '">' + escapeHtml(p.title) + "</button>";
+    }).join("");
+
+    document.getElementById("app").innerHTML =
+      '<div class="page-title"><div>' +
+        "<h1>Training</h1>" +
+        '<p class="sub">How to use Clow for investigation Flows and education / training Flows.</p>' +
+      "</div></div>" +
+      '<div class="train-layout">' +
+        '<nav class="panel train-nav no-print" aria-label="Training chapters">' + navHtml + "</nav>" +
+        '<article class="panel train-article">' +
+          '<div class="train-kicker">' + escapeHtml(meta.kicker) + "</div>" +
+          "<h1>" + escapeHtml(meta.title) + "</h1>" +
+          trainContent(pageId) +
+          '<div class="train-pager no-print">' +
+            (prev
+              ? '<button type="button" class="btn btn-neutral" data-trainpage="' + prev.id + '">← ' + escapeHtml(prev.title) + "</button>"
+              : "<span></span>") +
+            (next
+              ? '<button type="button" class="btn btn-primary" data-trainpage="' + next.id + '">' + escapeHtml(next.title) + " →</button>"
+              : '<a class="btn btn-secondary" href="index.html">Finish · open app</a>') +
+          "</div>" +
+        "</article>" +
+      "</div>";
+
+    document.querySelectorAll("[data-trainpage]").forEach((btn) => {
+      btn.onclick = () => goPage(btn.dataset.trainpage);
+    });
+    document.title = "Clow — Training · " + meta.title;
+  }
+
+  document.getElementById("btnPrint").onclick = () => window.print();
+  window.addEventListener("hashchange", render);
+  if (!location.hash) location.replace("#overview");
+  else render();
+})();
+  </script>
+</body>
+</html>
