@@ -21,10 +21,12 @@ There is **no server account**. Everything stays in the browser until you export
 
 ## Files
 
-| File | Purpose |
-|------|---------|
+| File / folder | Purpose |
+|---------------|---------|
 | `index.html` | Full app (UI + logic) |
 | `training.html` | Training guide (hash chapters) |
+| `fonts/` | Self-hosted DM Sans + Source Serif 4 (WOFF2) |
+| `.htaccess` | Apache security headers (cPanel / HTTPS host) |
 | `DEVELOPER_HANDOVER.md` | Architecture and function map for maintainers |
 
 No build step, no `package.json`, no backend.
@@ -37,7 +39,7 @@ No build step, no `package.json`, no backend.
 2. Use **Reset demo** (on the demo card) to load the sample Flow, or **New Flow** to author your own.
 3. **Open training** from the library (or open `training.html`) for the full guide.
 
-**Deploy (e.g. cPanel):** upload `index.html` and `training.html` to the same folder. Serve over HTTPS so fonts and external image URLs work cleanly.
+**Deploy (e.g. cPanel):** upload `index.html`, `training.html`, the `fonts/` folder, and `.htaccess` to the same directory. Serve over HTTPS. External Flow image URLs still need `https:` (allowed by CSP).
 
 ---
 

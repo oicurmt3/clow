@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Clow — Training</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="fonts/fonts.css" />
   <style>
     :root {
       --bg0: #e8eaee;
@@ -652,7 +650,7 @@
           <li><strong>Reset demo</strong> — confirms, then restores the sample Flow and deletes that demo’s runs only.</li>
           <li><strong>Import / Export all</strong> — backup or move Flows and runs as JSON.</li>
           <li><strong>In progress</strong> — Resume, Export JSON, or Delete unfinished runs.</li>
-          <li><strong>Completed runs</strong> — View the end screen, Export JSON, or Delete finished paths.</li>
+          <li><strong>Completed runs</strong> — View the end screen, Export JSON, or Delete finished paths. Use <strong>Delete all completed</strong> to clear finished history (export first if you need a record).</li>
         </ul>
         <h2>Sharing</h2>
         <p>Export a single Flow JSON for a colleague. They use <strong>Import</strong> on their copy of Clow. How storage, Save, and file types work is covered in <a href="#saving">Saving &amp; backups</a>.</p>
@@ -729,7 +727,7 @@
         <p>Completed runs appear under <strong>Completed runs</strong> on the library. Open <strong>View</strong> for the end screen (path, actions, Print, Export). You can also Export JSON from the library card without reopening the runner.</p>
         <div class="train-callout ok">
           <strong>Safe habit</strong>
-          <p>After authoring a live Flow: Save → Validate → Export Flow (or Export all). After important field runs: Export JSON or HTML from the runner (or library) so the path survives browser cleanup.</p>
+          <p>After authoring a live Flow: Save → Validate → Export Flow (or Export all). After important field runs: Export JSON or HTML from the runner (or library). On shared machines, export then delete completed runs so case details do not linger in browser storage.</p>
         </div>
       `,
       builder: `
@@ -958,7 +956,7 @@
         <table class="train-table">
           <thead><tr><th>Place</th><th>Action</th></tr></thead>
           <tbody>
-            <tr><td>Library</td><td>New, Run, Edit, Duplicate, Export, Import, Export all, Training, Reset demo; runs: Resume/View, Export JSON, Delete</td></tr>
+            <tr><td>Library</td><td>New, Run, Edit, Duplicate, Export, Import, Export all, Training, Reset demo; runs: Resume/View, Export JSON, Delete, Delete all completed</td></tr>
             <tr><td>Builder</td><td>Save, Validate, Test run, Import/Export Flow, Add step, Add rule, Make rule, ELSE</td></tr>
             <tr><td>Runner</td><td>Entity + case (step 1), Next / Continue, Back, action cycle, Print, Export JSON/HTML</td></tr>
           </tbody>
@@ -992,8 +990,9 @@
             <tr><td>Edits disappeared after leaving builder</td><td>Draft was not Saved. Save before Library / Test run handoff when you care about the draft.</td></tr>
             <tr><td>Validate shows issues / Ready missing</td><td>Fix missing ELSE, empty rules, orphan option values (red), unreachable steps, or no End here outcome.</td></tr>
             <tr><td>Import: Unrecognised / wrong type</td><td>Library Import for backups and path/run JSON; Builder Import for Flow JSON only. Backups ask to confirm before overwrite. Max file size 5 MB.</td></tr>
-            <tr><td>Storage full / save failed</td><td>Export a backup, delete old runs or Flows, then retry. Clow stores everything in this browser.</td></tr>
+            <tr><td>Storage full / save failed</td><td>Export a backup, use <strong>Delete all completed</strong> (or delete old Flows), then retry. Clow stores everything in this browser.</td></tr>
             <tr><td>Link or image missing after Save</td><td>Only http(s) and relative URLs are kept; <code>javascript:</code> and similar are blocked.</td></tr>
+            <tr><td>Sensitive case on a shared PC</td><td>Export the path (JSON/HTML), then delete that run (or Delete all completed). Clearing site data wipes the whole library.</td></tr>
             <tr><td>Cannot leave step 1</td><td>Entity and case number are both required.</td></tr>
             <tr><td>Finished run not in In progress</td><td>Look under <strong>Completed runs</strong> — use View or Export JSON there.</td></tr>
             <tr><td>Demo answers / steps look wrong</td><td>Reset demo (confirm dialog) to reload the stock sample; only demo runs are cleared.</td></tr>

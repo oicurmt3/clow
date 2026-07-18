@@ -10,20 +10,18 @@ This document explains how the Clow codebase is structured, how data is stored, 
 
 ## 1. Repository layout
 
-| File | Role |
-|------|------|
+| File / folder | Role |
+|---------------|------|
 | `index.html` | Entire product SPA: CSS design system, shell DOM, library / builder / runner logic |
 | `training.html` | Standalone training guide; hash-routed chapters; does not write app storage |
+| `fonts/` | Self-hosted `fonts.css` + Latin WOFF2 (DM Sans, Source Serif 4) |
+| `.htaccess` | CSP / nosniff / referrer / frame headers for Apache |
 | `README.md` | GitHub-facing overview for users and deployers |
 | `DEVELOPER_HANDOVER.md` | This file |
 
-**External dependencies (CDN):**
+**External dependencies:** none required at runtime for fonts/icons. Demo Flow may still reference external `https:` image URLs (e.g. picsum); Flows store URL strings only.
 
-- Google Fonts: DM Sans, Source Serif 4
-- Material Symbols Outlined (builder icons)
-- Demo Flow may reference external image URLs (e.g. picsum); Flows store URL strings only
-
-**Hosting:** upload both HTML files to the same origin (cPanel / any static HTTPS host). Relative links: `index.html` ↔ `training.html`.
+**Hosting:** upload HTML + `fonts/` + `.htaccess` to the same origin (cPanel / any static HTTPS host). Relative links: `index.html` ↔ `training.html`.
 
 ---
 
@@ -443,10 +441,17 @@ Edit `createDemoWorkflow()`. Users must **Reset demo** to reload an existing ins
 |---------|----------------|
 | XSS via links/images | `isSafeUrl` / `sanitizeUrl` / `renderSafeLink` / `renderSafeImage` — allow `http:`, `https:`, relative paths; block `javascript:`, `data:`, etc. Sanitized on Save, import, and builder blur. |
 | Attribute injection | `escapeAttr` on ids in `data-*` / `<option value>`; import remaps unsafe ids via `hardenFlowIds` |
+| Slider number injection | `sanitizeFlowNumbers` / `coerceFiniteNumber` on import + Save; runner/builder interpolate coerced numbers only |
 | Import abuse | 5 MB file cap (`IMPORT_MAX_BYTES`); backup import confirm + overwrite warning; `normalizeImportedFlow` / `normalizeImportedRun` |
+| Modal XSS surface | Prefer `bodyText` (textContent) for confirms; HTML `body` only for lists that need markup |
+| Host headers | `.htaccess` CSP + `X-Content-Type-Options` + `Referrer-Policy` + `X-Frame-Options` |
+| Sensitive data hygiene | Library **Delete all completed**; training notes for shared PCs |
 | Library validate cost | `getCachedValidationErrors` keyed by `wf.id` + `updatedAt`; invalidated on save/delete/import/reset |
 | Run save cost | Debounced `schedulePersistState` (~280 ms); immediate flush on create/complete/delete/workflow save; `pagehide`/`beforeunload` flush; `QuotaExceededError` toast |
+| Remaining estimate | `estimateRemainingCached` memoized per flow version + node |
+| Builder re-renders | `selectBuilderStep` / `syncStepListChrome` avoid full shell rebuild for step select + endHere toggle |
 | Brand draft loss | `confirmLeaveBuilder()` shared by Library button and brand home |
+| Fonts / icons | Self-hosted WOFF2 in `fonts/`; delete icon is inline SVG mask (no Material Symbols CDN) |
 
 ---
 

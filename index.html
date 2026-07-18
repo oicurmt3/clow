@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Clow — investigation Flows</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="fonts/fonts.css" />
   <style>
     :root {
       --bg0: #e8eaee;
@@ -147,21 +145,14 @@
       background: var(--danger-soft);
       color: var(--danger-hover);
     }
-    .material-symbols-outlined {
-      font-family: "Material Symbols Outlined";
-      font-weight: normal;
-      font-style: normal;
-      font-size: 20px;
-      line-height: 1;
-      letter-spacing: normal;
-      text-transform: none;
+    .icon-trash {
       display: inline-block;
-      white-space: nowrap;
-      word-wrap: normal;
-      direction: ltr;
-      font-feature-settings: "liga";
-      -webkit-font-smoothing: antialiased;
-      user-select: none;
+      width: 1.05em;
+      height: 1.05em;
+      background: currentColor;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM7 9h2v9H7V9z'/%3E%3C/svg%3E") center / contain no-repeat;
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM7 9h2v9H7V9z'/%3E%3C/svg%3E") center / contain no-repeat;
+      vertical-align: -0.15em;
     }
 
     .main {
@@ -1003,6 +994,9 @@
 
   const STORAGE_KEY = "clow.v1";
   const DEMO_ID = "wf_demo_clow";
+  const IMPORT_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+  const RUN_SAVE_DEBOUNCE_MS = 280;
+  const SAFE_ID_RE = /^[A-Za-z0-9_-]{1,80}$/;
 
   // ─── Helpers ───────────────────────────────────────────
   const uid = (p = "id") => p + "_" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
@@ -1031,7 +1025,11 @@
     }
   }
   function saveLastRunner(userName, caseNumber) {
-    localStorage.setItem(LAST_RUNNER_KEY, JSON.stringify({ userName, caseNumber }));
+    try {
+      localStorage.setItem(LAST_RUNNER_KEY, JSON.stringify({ userName, caseNumber }));
+    } catch (e) {
+      if (isQuotaError(e)) toast("Storage full — could not remember Entity / case");
+    }
   }
   /** Display / export title from investigator + case. */
   function composeRunName({ userName, caseNumber, test }) {
@@ -1056,6 +1054,112 @@
   const escapeHtml = (s) => String(s ?? "")
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+  function isSafeId(id) {
+    return typeof id === "string" && SAFE_ID_RE.test(id);
+  }
+  function sanitizeId(id, prefix = "id") {
+    const cleaned = String(id || "").replace(/[^A-Za-z0-9_-]/g, "_").replace(/^_+|_+$/g, "").slice(0, 80);
+    return isSafeId(cleaned) ? cleaned : uid(prefix);
+  }
+  /** Escape for use inside double-quoted HTML attributes. */
+  function escapeAttr(s) {
+    return escapeHtml(s);
+  }
+
+  /** Allow http(s) and same-origin relative paths; block javascript:/data:/etc. */
+  function isSafeUrl(raw) {
+    const t = String(raw || "").trim();
+    if (!t || t.length > 2048) return false;
+    const lower = t.toLowerCase();
+    if (lower.startsWith("javascript:") || lower.startsWith("data:") ||
+        lower.startsWith("vbscript:") || lower.startsWith("file:")) return false;
+    if (t.startsWith("//")) return false;
+    if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(t)) {
+      return !/[<>"']/.test(t);
+    }
+    try {
+      const u = new URL(t);
+      return u.protocol === "http:" || u.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }
+  function sanitizeUrl(raw) {
+    const t = String(raw || "").trim();
+    return isSafeUrl(t) ? t : "";
+  }
+  function renderSafeLink(link) {
+    const url = sanitizeUrl(link && link.url);
+    const label = (link && link.label) || url || "Link";
+    if (!url) {
+      return `<span class="muted" title="Blocked unsafe URL">${escapeHtml(label)}</span>`;
+    }
+    return `<a href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
+  }
+  function renderSafeImage(url) {
+    const src = sanitizeUrl(url);
+    if (!src) return "";
+    return `<img class="outcome-image" src="${escapeAttr(src)}" alt="" />`;
+  }
+  function sanitizeFlowUrls(wf) {
+    if (!wf || !wf.nodes) return;
+    Object.values(wf.nodes).forEach((n) => {
+      if (n.imageUrl) n.imageUrl = sanitizeUrl(n.imageUrl);
+      else n.imageUrl = "";
+      if (!Array.isArray(n.links)) n.links = [];
+      n.links.forEach((l) => {
+        if (!l || typeof l !== "object") return;
+        l.label = String(l.label || "");
+        l.url = sanitizeUrl(l.url);
+      });
+    });
+  }
+
+  function coerceFiniteNumber(v, fallback) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  /** Coerce slider/band numeric fields so imported strings cannot break HTML attributes. */
+  function sanitizeNodeNumbers(node) {
+    if (!node || typeof node !== "object") return;
+    if (node.kind === "question" && node.fieldType === "slider") {
+      if (!node.slider || typeof node.slider !== "object") {
+        node.slider = { min: 0, max: 10, step: 1, bands: [] };
+      }
+      node.slider.min = coerceFiniteNumber(node.slider.min, 0);
+      node.slider.max = coerceFiniteNumber(node.slider.max, 10);
+      node.slider.step = coerceFiniteNumber(node.slider.step, 1) || 1;
+      if (node.slider.max < node.slider.min) {
+        const t = node.slider.min;
+        node.slider.min = node.slider.max;
+        node.slider.max = t;
+      }
+      node.defaultValue = coerceFiniteNumber(node.defaultValue, node.slider.min);
+      if (!Array.isArray(node.slider.bands)) node.slider.bands = [];
+      node.slider.bands = node.slider.bands.filter((b) => b && typeof b === "object").map((b, i) => ({
+        max: coerceFiniteNumber(b.max, node.slider.min + i + 1),
+        label: String(b.label || ("Band " + (i + 1))).slice(0, 80),
+        routeKey: String(b.routeKey || ("band_" + (i + 1))).replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 40) || ("band_" + (i + 1))
+      }));
+    } else if (node.defaultValue != null && typeof node.defaultValue !== "object") {
+      // leave option defaults as strings; only coerce pure numeric defaults when already numeric-like
+      if (typeof node.defaultValue === "number") {
+        node.defaultValue = coerceFiniteNumber(node.defaultValue, 0);
+      }
+    }
+  }
+
+  function sanitizeFlowNumbers(wf) {
+    if (!wf || !wf.nodes) return;
+    Object.values(wf.nodes).forEach(sanitizeNodeNumbers);
+  }
+
+  function isQuotaError(e) {
+    return !!(e && (e.name === "QuotaExceededError" || e.code === 22 || e.code === 1014));
+  }
+
   const downloadJson = (filename, data) => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
@@ -1961,11 +2065,67 @@
     }
   }
 
-  function saveState(state) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  let persistTimer = null;
+  let persistDirty = false;
+  const validationCache = new Map(); // workflowId -> { updatedAt, errors }
+  const remainingCache = new Map(); // wfId|updatedAt|nodeId -> number
+
+  function saveState(stateObj) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stateObj));
+      persistDirty = false;
+      return true;
+    } catch (e) {
+      if (isQuotaError(e)) {
+        toast("Storage full — export a backup and delete old runs or Flows");
+      } else {
+        toast("Could not save to browser storage");
+      }
+      return false;
+    }
+  }
+
+  function flushPersistedState() {
+    if (persistTimer) {
+      clearTimeout(persistTimer);
+      persistTimer = null;
+    }
+    return saveState(state);
+  }
+
+  function schedulePersistState() {
+    persistDirty = true;
+    if (persistTimer) clearTimeout(persistTimer);
+    persistTimer = setTimeout(() => {
+      persistTimer = null;
+      saveState(state);
+    }, RUN_SAVE_DEBOUNCE_MS);
+  }
+
+  function invalidateValidation(workflowId) {
+    if (workflowId) validationCache.delete(workflowId);
+    else validationCache.clear();
+    remainingCache.clear();
+  }
+
+  /** Cached for library cards; always fresh for Validate / Test run via validateWorkflow. */
+  function getCachedValidationErrors(wf) {
+    if (!wf) return [];
+    const hit = validationCache.get(wf.id);
+    if (hit && hit.updatedAt === wf.updatedAt) return hit.errors;
+    const errors = validateWorkflow(wf);
+    validationCache.set(wf.id, { updatedAt: wf.updatedAt, errors });
+    return errors;
   }
 
   let state = loadState();
+
+  window.addEventListener("pagehide", () => {
+    if (persistDirty || persistTimer) flushPersistedState();
+  });
+  window.addEventListener("beforeunload", () => {
+    if (persistDirty || persistTimer) flushPersistedState();
+  });
 
   function getWorkflows() {
     return Object.values(state.workflows).sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
@@ -1977,16 +2137,20 @@
   }
   function saveWorkflow(wf) {
     migrateWorkflow(wf);
+    sanitizeFlowUrls(wf);
+    sanitizeFlowNumbers(wf);
     wf.updatedAt = now();
     state.workflows[wf.id] = wf;
-    saveState(state);
+    invalidateValidation(wf.id);
+    flushPersistedState();
   }
   function deleteWorkflow(id) {
     delete state.workflows[id];
     Object.keys(state.runs).forEach((rid) => {
       if (state.runs[rid].workflowId === id) delete state.runs[rid];
     });
-    saveState(state);
+    invalidateValidation(id);
+    flushPersistedState();
   }
   function getRuns(workflowId) {
     return Object.values(state.runs)
@@ -1994,21 +2158,29 @@
       .sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
   }
   function getRun(id) { return state.runs[id] || null; }
-  function saveRun(run) {
+  function saveRun(run, opts = {}) {
     run.updatedAt = now();
     state.runs[run.id] = run;
-    saveState(state);
+    if (opts.immediate || run.status === "completed") flushPersistedState();
+    else schedulePersistState();
   }
   function deleteRun(id) {
     delete state.runs[id];
-    saveState(state);
+    flushPersistedState();
+  }
+  function deleteCompletedRuns() {
+    const ids = Object.keys(state.runs).filter((rid) => state.runs[rid].status === "completed");
+    ids.forEach((rid) => { delete state.runs[rid]; });
+    flushPersistedState();
+    return ids.length;
   }
   function resetDemo() {
     state.workflows[DEMO_ID] = createDemoWorkflow();
     Object.keys(state.runs).forEach((rid) => {
       if (state.runs[rid].workflowId === DEMO_ID) delete state.runs[rid];
     });
-    saveState(state);
+    invalidateValidation(DEMO_ID);
+    flushPersistedState();
   }
 
   // ─── Routing / validation helpers ──────────────────────
@@ -2330,6 +2502,15 @@
     });
     return 1 + maxChild;
   }
+
+  function estimateRemainingCached(wf, fromNodeId) {
+    if (!wf || !fromNodeId) return 0;
+    const key = wf.id + "|" + (wf.updatedAt || "") + "|" + fromNodeId;
+    if (remainingCache.has(key)) return remainingCache.get(key);
+    const n = estimateRemaining(wf, fromNodeId);
+    remainingCache.set(key, n);
+    return n;
+  }
   function validateWorkflow(wf) {
     migrateWorkflow(wf);
     const errors = [];
@@ -2402,16 +2583,28 @@
   function closeModal() {
     document.getElementById("modalRoot").innerHTML = "";
   }
-  function showModal({ title, body, actions }) {
+  function showModal({ title, body, bodyText, actions }) {
     const root = document.getElementById("modalRoot");
     root.innerHTML = `
       <div class="modal-backdrop" data-close="1">
         <div class="modal" role="dialog" aria-modal="true">
           <h2>${escapeHtml(title)}</h2>
-          <div>${body}</div>
+          <div id="modalBody"></div>
           <div class="modal-actions" id="modalActions"></div>
         </div>
       </div>`;
+    const bodyEl = root.querySelector("#modalBody");
+    if (bodyText != null && bodyText !== "") {
+      const lines = Array.isArray(bodyText) ? bodyText : [bodyText];
+      lines.forEach((line, i) => {
+        const p = document.createElement("p");
+        p.textContent = String(line);
+        if (i > 0) p.className = "muted";
+        bodyEl.appendChild(p);
+      });
+    } else if (body) {
+      bodyEl.innerHTML = body;
+    }
     root.querySelector(".modal-backdrop").addEventListener("click", (e) => {
       if (e.target.dataset.close) closeModal();
     });
@@ -2448,8 +2641,32 @@
     render();
   }
 
+  function confirmLeaveBuilder() {
+    showModal({
+      title: "Leave builder?",
+      bodyText: "Unsaved changes will be lost if you haven’t saved.",
+      actions: [
+        { label: "Stay", className: "btn-neutral", onClick: closeModal },
+        {
+          label: "Leave",
+          className: "btn-secondary",
+          onClick: () => {
+            closeModal();
+            app.draft = null;
+            app.testMode = false;
+            navigate("library");
+          }
+        }
+      ]
+    });
+  }
+
   document.getElementById("brandHome").addEventListener("click", (e) => {
     e.preventDefault();
+    if (app.view === "builder" && app.draft) {
+      confirmLeaveBuilder();
+      return;
+    }
     app.draft = null;
     app.testMode = false;
     navigate("library");
@@ -2459,6 +2676,7 @@
   function libraryRunCardHtml(r) {
     const wf = getWorkflow(r.workflowId);
     const done = r.status === "completed";
+    const rid = escapeAttr(r.id);
     return `
       <div class="panel card">
         <div>
@@ -2473,9 +2691,9 @@
           </div>
         </div>
         <div class="card-actions">
-          <button class="btn btn-primary btn-sm" data-openrun="${r.id}">${done ? "View" : "Resume"}</button>
-          <button class="btn btn-neutral btn-sm" data-exprun="${r.id}">Export JSON</button>
-          <button class="btn btn-danger btn-sm" data-delrun="${r.id}">Delete</button>
+          <button class="btn btn-primary btn-sm" data-openrun="${rid}">${done ? "View" : "Resume"}</button>
+          <button class="btn btn-neutral btn-sm" data-exprun="${rid}">Export JSON</button>
+          <button class="btn btn-danger btn-sm" data-delrun="${rid}">Delete</button>
         </div>
       </div>`;
   }
@@ -2524,17 +2742,21 @@
     }
     if (doneRuns.length) {
       runsHtml += `
-        <div class="section-label">Completed runs</div>
+        <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <span>Completed runs</span>
+          <button type="button" class="btn btn-danger btn-sm" id="btnClearCompleted">Delete all completed</button>
+        </div>
         <div class="card-list">${doneRuns.map(libraryRunCardHtml).join("")}</div>`;
     }
 
     const cards = workflows.map((wf) => {
-      const errs = validateWorkflow(wf);
+      const errs = getCachedValidationErrors(wf);
       const wfRuns = getRuns(wf.id);
       const runCount = wfRuns.length;
       const doneCount = wfRuns.filter((r) => r.status === "completed").length;
+      const wid = escapeAttr(wf.id);
       return `
-        <div class="panel card" data-wf="${wf.id}">
+        <div class="panel card" data-wf="${wid}">
           <div>
             <div class="card-title">${escapeHtml(wf.name)}</div>
             <div class="card-meta">
@@ -2547,13 +2769,13 @@
             </div>
           </div>
           <div class="card-actions">
-            <button class="btn btn-primary btn-sm" data-run="${wf.id}">Run</button>
-            <button class="btn btn-secondary btn-sm" data-edit="${wf.id}">Edit</button>
-            <button class="btn btn-neutral btn-sm" data-dup="${wf.id}">Duplicate</button>
-            <button class="btn btn-neutral btn-sm" data-exp="${wf.id}">Export</button>
+            <button class="btn btn-primary btn-sm" data-run="${wid}">Run</button>
+            <button class="btn btn-secondary btn-sm" data-edit="${wid}">Edit</button>
+            <button class="btn btn-neutral btn-sm" data-dup="${wid}">Duplicate</button>
+            <button class="btn btn-neutral btn-sm" data-exp="${wid}">Export</button>
             ${wf.isDemo
               ? '<button class="btn btn-neutral btn-sm" data-resetdemo="1">Reset demo</button>'
-              : `<button class="btn btn-danger btn-sm" data-del="${wf.id}">Delete</button>`}
+              : `<button class="btn btn-danger btn-sm" data-del="${wid}">Delete</button>`}
           </div>
         </div>`;
     }).join("");
@@ -2581,6 +2803,31 @@
     `;
 
     const root = document.getElementById("app");
+    const clearBtn = root.querySelector("#btnClearCompleted");
+    if (clearBtn) {
+      clearBtn.onclick = () => {
+        showModal({
+          title: "Delete completed runs?",
+          bodyText: [
+            `Delete all ${doneRuns.length} completed run${doneRuns.length === 1 ? "" : "s"} from this browser?`,
+            "In-progress runs and Flows are kept. Export first if you need a record."
+          ],
+          actions: [
+            { label: "Cancel", className: "btn-neutral", onClick: closeModal },
+            {
+              label: "Delete all completed",
+              className: "btn-danger",
+              onClick: () => {
+                const n = deleteCompletedRuns();
+                closeModal();
+                toast(n ? `Deleted ${n} completed run${n === 1 ? "" : "s"}` : "No completed runs");
+                render();
+              }
+            }
+          ]
+        });
+      };
+    }
     root.querySelectorAll("[data-run]").forEach((b) => b.onclick = () => startRun(b.dataset.run));
     root.querySelectorAll("[data-edit]").forEach((b) => b.onclick = () => openBuilder(b.dataset.edit));
     root.querySelectorAll("[data-dup]").forEach((b) => b.onclick = () => duplicateWorkflow(b.dataset.dup));
@@ -2593,7 +2840,7 @@
       const wf = getWorkflow(b.dataset.del);
       showModal({
         title: "Delete flow?",
-        body: `<p>Delete “${escapeHtml(wf.name)}” and its runs? This cannot be undone.</p>`,
+        bodyText: `Delete “${wf.name}” and its runs? This cannot be undone.`,
         actions: [
           { label: "Cancel", className: "btn-neutral", onClick: closeModal },
           { label: "Delete", className: "btn-danger", onClick: () => { deleteWorkflow(wf.id); closeModal(); toast("Deleted"); render(); } }
@@ -2603,7 +2850,7 @@
     root.querySelectorAll("[data-resetdemo]").forEach((b) => b.onclick = () => {
       showModal({
         title: "Reset demo?",
-        body: `<p>Replace the demo Flow with the stock sample and delete all demo runs? Your other Flows are not affected.</p>`,
+        bodyText: "Replace the demo Flow with the stock sample and delete all demo runs? Your other Flows are not affected.",
         actions: [
           { label: "Cancel", className: "btn-neutral", onClick: closeModal },
           {
@@ -2634,7 +2881,7 @@
       const title = run ? runDisplayTitle(run) : "this run";
       showModal({
         title: "Delete run?",
-        body: `<p>Delete “${escapeHtml(title)}”? This cannot be undone.</p>`,
+        bodyText: `Delete “${title}”? This cannot be undone.`,
         actions: [
           { label: "Cancel", className: "btn-neutral", onClick: closeModal },
           {
@@ -2788,7 +3035,7 @@
 
   /** Extract a Flow object from export/backup/raw shapes, or null. */
   function extractImportedFlow(data) {
-    if (!data || typeof data !== "object") return null;
+    if (!data || typeof data !== "object" || Array.isArray(data)) return null;
     if ((data.type === "clow-flow" || data.type === "clow-workflow") && data.workflow) {
       return deepClone(data.workflow);
     }
@@ -2798,18 +3045,96 @@
     return null;
   }
 
+  /** Remap unsafe node/workflow ids and fix internal references. */
+  function hardenFlowIds(wf) {
+    if (!wf || typeof wf !== "object") return null;
+    const oldNodes = wf.nodes && typeof wf.nodes === "object" ? wf.nodes : {};
+    const idMap = {};
+    const used = new Set();
+    Object.keys(oldNodes).forEach((oldId) => {
+      let neu = isSafeId(oldId) ? oldId : sanitizeId(oldId, "n");
+      while (used.has(neu)) neu = uid("n");
+      used.add(neu);
+      idMap[oldId] = neu;
+    });
+    const mapRef = (id) => (id && idMap[id]) || "";
+    const newNodes = {};
+    Object.entries(oldNodes).forEach(([oldId, node]) => {
+      if (!node || typeof node !== "object") return;
+      const nid = idMap[oldId];
+      const n = deepClone(node);
+      n.id = nid;
+      if (n.defaultRoute) n.defaultRoute = mapRef(n.defaultRoute);
+      if (n.next) n.next = mapRef(n.next);
+      if (Array.isArray(n.rules)) {
+        n.rules = n.rules.filter((r) => r && typeof r === "object").map((r) => {
+          const rule = deepClone(r);
+          rule.id = isSafeId(rule.id) ? rule.id : uid("r");
+          rule.then = mapRef(rule.then);
+          rule.join = rule.join === "or" ? "or" : "and";
+          rule.conditions = (Array.isArray(rule.conditions) ? rule.conditions : [])
+            .filter((c) => c && typeof c === "object")
+            .map((c) => ({
+              stepId: mapRef(c.stepId),
+              op: String(c.op || "eq"),
+              value: c.value
+            }));
+          return rule;
+        });
+      }
+      newNodes[nid] = n;
+    });
+    wf.nodes = newNodes;
+    wf.id = isSafeId(wf.id) ? wf.id : sanitizeId(wf.id, "wf");
+    wf.startNodeId = mapRef(wf.startNodeId) || Object.keys(newNodes)[0] || "";
+    wf.stepOrder = (Array.isArray(wf.stepOrder) ? wf.stepOrder : [])
+      .map((id) => mapRef(id))
+      .filter(Boolean);
+    return wf;
+  }
+
   function normalizeImportedFlow(wf) {
-    if (!wf) return null;
+    if (!wf || typeof wf !== "object") return null;
+    if (!wf.nodes || typeof wf.nodes !== "object") return null;
+    wf.name = String(wf.name || "Imported Flow").slice(0, 200);
     wf.isDemo = false;
-    wf.tags = (wf.tags || []).filter((t) => t !== "demo");
+    wf.tags = (Array.isArray(wf.tags) ? wf.tags : [])
+      .map((t) => String(t).slice(0, 40))
+      .filter((t) => t && t !== "demo")
+      .slice(0, 20);
+    hardenFlowIds(wf);
     migrateWorkflow(wf);
+    sanitizeFlowUrls(wf);
+    sanitizeFlowNumbers(wf);
     nodeList(wf).forEach((n) => {
       if (n.kind === "outcome") normalizeOutcome(n);
       if (!Array.isArray(n.links)) n.links = [];
+      if (!Array.isArray(n.actions)) n.actions = n.actions ? [].concat(n.actions).map(String) : [];
+      n.title = String(n.title || "").slice(0, 200);
+      n.prompt = String(n.prompt || "").slice(0, 4000);
+      n.guidance = String(n.guidance || "").slice(0, 8000);
     });
     ensureStepOrder(wf);
     wf.updatedAt = now();
     return wf;
+  }
+
+  function normalizeImportedRun(run) {
+    if (!run || typeof run !== "object") return null;
+    const r = deepClone(run);
+    r.id = isSafeId(r.id) ? r.id : uid("run");
+    r.workflowId = isSafeId(r.workflowId) ? r.workflowId : String(r.workflowId || "");
+    if (!isSafeId(r.workflowId)) r.workflowId = sanitizeId(r.workflowId, "wf");
+    r.userName = String(r.userName || "").slice(0, 200);
+    r.caseNumber = String(r.caseNumber || "").slice(0, 120);
+    r.name = String(r.name || "").slice(0, 240);
+    r.status = r.status === "completed" ? "completed" : "in_progress";
+    r.isTest = !!r.isTest;
+    r.currentNodeId = isSafeId(r.currentNodeId) ? r.currentNodeId : sanitizeId(r.currentNodeId, "n");
+    r.answers = Array.isArray(r.answers) ? r.answers.slice(0, 500) : [];
+    r.actions = Array.isArray(r.actions) ? r.actions.map(String).slice(0, 200) : [];
+    r.actionMarks = r.actionMarks && typeof r.actionMarks === "object" ? r.actionMarks : {};
+    return r;
   }
 
   function importFlowAsNew(imported) {
@@ -2854,8 +3179,10 @@
     const label = imported.name || "Imported Flow";
     showModal({
       title: "Import Flow?",
-      body: `<p>Import “${escapeHtml(label)}” into the builder?</p>
-        <p class="muted">Replace updates this Flow’s draft (Save to keep). Add as new creates a separate Flow.</p>`,
+      bodyText: [
+        `Import “${label}” into the builder?`,
+        "Replace updates this Flow’s draft (Save to keep). Add as new creates a separate Flow."
+      ],
       actions: [
         { label: "Cancel", className: "btn-neutral", onClick: closeModal },
         {
@@ -2888,24 +3215,82 @@
 
   function readJsonFile(file, onData) {
     if (!file) return;
+    if (file.size > IMPORT_MAX_BYTES) {
+      toast("File too large (max 5 MB)");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        onData(JSON.parse(reader.result));
+        const data = JSON.parse(reader.result);
+        if (!data || typeof data !== "object") {
+          toast("Invalid JSON file");
+          return;
+        }
+        onData(data);
       } catch {
         toast("Invalid JSON file");
       }
     };
+    reader.onerror = () => toast("Could not read file");
     reader.readAsText(file);
   }
 
+  function applyBackupImport(data) {
+    const workflows = data.workflows && typeof data.workflows === "object" ? data.workflows : {};
+    let wfCount = 0;
+    Object.values(workflows).forEach((raw) => {
+      const wf = normalizeImportedFlow(deepClone(raw));
+      if (!wf) return;
+      if (!wf.createdAt) wf.createdAt = now();
+      state.workflows[wf.id] = wf;
+      invalidateValidation(wf.id);
+      wfCount += 1;
+    });
+    let runCount = 0;
+    if (data.runs && typeof data.runs === "object") {
+      Object.values(data.runs).forEach((raw) => {
+        const run = normalizeImportedRun(raw);
+        if (!run) return;
+        if (state.runs[run.id]) run.id = uid("run");
+        state.runs[run.id] = run;
+        runCount += 1;
+      });
+    }
+    flushPersistedState();
+    toast(`Backup imported (${wfCount} Flow${wfCount === 1 ? "" : "s"}, ${runCount} run${runCount === 1 ? "" : "s"})`);
+    render();
+  }
+
   function importData(data) {
+    if (!data || typeof data !== "object") {
+      toast("Unrecognised Clow file");
+      return;
+    }
     if (data.type === "clow-backup" && data.workflows) {
-      Object.values(data.workflows).forEach((wf) => { state.workflows[wf.id] = wf; });
-      if (data.runs) Object.values(data.runs).forEach((r) => { state.runs[r.id] = r; });
-      saveState(state);
-      toast("Backup imported");
-      render();
+      const wfIds = Object.keys(data.workflows);
+      const runIds = data.runs && typeof data.runs === "object" ? Object.keys(data.runs) : [];
+      const overlap = wfIds.filter((id) => state.workflows[id]).length;
+      showModal({
+        title: "Import backup?",
+        bodyText: [
+          `Import ${wfIds.length} Flow(s) and ${runIds.length} run(s) into this browser?`,
+          overlap
+            ? `${overlap} Flow id(s) already exist and will be overwritten.`
+            : "Matching ids overwrite; new ids are added."
+        ],
+        actions: [
+          { label: "Cancel", className: "btn-neutral", onClick: closeModal },
+          {
+            label: "Import",
+            className: "btn-primary",
+            onClick: () => {
+              closeModal();
+              applyBackupImport(data);
+            }
+          }
+        ]
+      });
       return;
     }
     const flow = extractImportedFlow(data);
@@ -2920,10 +3305,14 @@
       return;
     }
     if (data.type === "clow-run" && data.run) {
-      const run = data.run;
+      const run = normalizeImportedRun(data.run);
+      if (!run) {
+        toast("Unrecognised Clow file");
+        return;
+      }
       if (state.runs[run.id]) run.id = uid("run");
-      saveRun(run);
-      toast("Run imported");
+      saveRun(run, { immediate: true });
+      toast(state.workflows[run.workflowId] ? "Run imported" : "Run imported (Flow missing — path view may be limited)");
       render();
       return;
     }
@@ -2976,16 +3365,7 @@
       <button class="btn btn-primary btn-sm" id="btnSave">Save</button>
       <input type="file" id="builderImportFile" accept="application/json,.json" class="hidden" />
     `, (el) => {
-      el.querySelector("#btnBackLib").onclick = () => {
-        showModal({
-          title: "Leave builder?",
-          body: "<p>Unsaved changes will be lost if you haven’t saved.</p>",
-          actions: [
-            { label: "Stay", className: "btn-neutral", onClick: closeModal },
-            { label: "Leave", className: "btn-secondary", onClick: () => { closeModal(); app.draft = null; navigate("library"); } }
-          ]
-        });
-      };
+      el.querySelector("#btnBackLib").onclick = () => confirmLeaveBuilder();
       el.querySelector("#btnImportFlow").onclick = () => el.querySelector("#builderImportFile").click();
       el.querySelector("#builderImportFile").onchange = (e) => {
         const file = e.target.files && e.target.files[0];
@@ -3066,9 +3446,9 @@
           <p class="field-hint" style="padding:0 12px;margin:8px 0 0">Drag ⋮⋮ to reorder the list (does not change routing).</p>
           <ul class="step-list" id="stepList">
             ${ordered.map((n, i) => `
-              <li class="step-li ${n.id === app.selectedNodeId ? "active" : ""}" data-stepid="${n.id}" data-stepindex="${i}">
+              <li class="step-li ${n.id === app.selectedNodeId ? "active" : ""}" data-stepid="${escapeAttr(n.id)}" data-stepindex="${i}">
                 <span class="drag-handle" draggable="true" title="Drag to reorder" aria-label="Drag to reorder">⋮⋮</span>
-                <button type="button" class="step-item ${n.id === app.selectedNodeId ? "active" : ""}" data-sel="${n.id}">
+                <button type="button" class="step-item ${n.id === app.selectedNodeId ? "active" : ""}" data-sel="${escapeAttr(n.id)}">
                   <span class="step-badge ${n.id === wf.startNodeId ? "start" : ""}">${n.kind === "outcome" ? (isTerminalOutcome(n) ? "●" : "→") : "?"}</span>
                   <span>
                     <div class="si-title">${escapeHtml(n.title || "Untitled")}</div>
@@ -3135,11 +3515,30 @@
       renderBuilder();
     };
     document.querySelectorAll("[data-sel]").forEach((b) => {
-      b.onclick = () => { app.selectedNodeId = b.dataset.sel; renderBuilder(); };
+      b.onclick = () => selectBuilderStep(b.dataset.sel);
     });
     bindStepDragDrop(document.getElementById("stepList"), wf);
 
     renderNodeEditor(sel);
+  }
+
+  /** Switch selected step without rebuilding the whole builder shell. */
+  function selectBuilderStep(id) {
+    const wf = app.draft;
+    if (!wf || !wf.nodes[id]) return;
+    app.selectedNodeId = id;
+    document.querySelectorAll("#stepList .step-li").forEach((li) => {
+      const active = li.dataset.stepid === id;
+      li.classList.toggle("active", active);
+      const btn = li.querySelector(".step-item");
+      if (btn) btn.classList.toggle("active", active);
+    });
+    const setStart = document.getElementById("btnSetStart");
+    const delStep = document.getElementById("btnDelStep");
+    const node = wf.nodes[id];
+    if (setStart) setStart.disabled = !node || node.kind === "outcome" || node.id === wf.startNodeId;
+    if (delStep) delStep.disabled = !node || node.id === wf.startNodeId;
+    renderNodeEditor(node);
   }
 
   function addStep(kind) {
@@ -3249,7 +3648,7 @@
   function targetOptionsHtml(wf, selected) {
     const opts = getOrderedSteps(wf)
       .filter((n) => n.id !== app.selectedNodeId)
-      .map((n) => `<option value="${n.id}" ${n.id === selected ? "selected" : ""}>${escapeHtml(nodeLabel(n))} (${n.kind})</option>`)
+      .map((n) => `<option value="${escapeAttr(n.id)}" ${n.id === selected ? "selected" : ""}>${escapeHtml(nodeLabel(n))} (${escapeHtml(n.kind)})</option>`)
       .join("");
     return `<option value="">— select —</option>${opts}`;
   }
@@ -3258,7 +3657,7 @@
     const opts = getOrderedSteps(wf)
       .filter((n) => n.kind === "question")
       .filter((n) => includeCurrent || n.id !== app.selectedNodeId)
-      .map((n) => `<option value="${n.id}" ${n.id === selected ? "selected" : ""}>${escapeHtml(nodeLabel(n))}</option>`)
+      .map((n) => `<option value="${escapeAttr(n.id)}" ${n.id === selected ? "selected" : ""}>${escapeHtml(nodeLabel(n))}</option>`)
       .join("");
     return `<option value="">— step —</option>${opts}`;
   }
@@ -3317,7 +3716,7 @@
                   </div>
                 </div>
                 <button type="button" class="btn btn-icon btn-danger-ghost" data-delrule="${ri}" title="Delete rule" aria-label="Delete rule">
-                  <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                  <span class="icon-trash" aria-hidden="true"></span>
                 </button>
               </div>
               ${(rule.conditions || []).map((c, ci) => {
@@ -3328,7 +3727,7 @@
                   <div class="cond-row${orphan ? " cond-invalid" : ""}">
                     <select data-cond-step="${ri}:${ci}">${questionStepOptionsHtml(wf, c.stepId, true)}</select>
                     <select data-cond-op="${ri}:${ci}">
-                      ${ops.map(([v, lab]) => `<option value="${v}" ${c.op === v ? "selected" : ""}>${lab}</option>`).join("")}
+                      ${ops.map(([v, lab]) => `<option value="${escapeAttr(v)}" ${c.op === v ? "selected" : ""}>${escapeHtml(lab)}</option>`).join("")}
                     </select>
                     <select data-cond-val="${ri}:${ci}">${conditionValueOptionsHtml(wf, c.stepId, c.value)}</select>
                     <button type="button" class="btn btn-ghost btn-sm" data-delcond="${ri}:${ci}">Remove</button>
@@ -3425,16 +3824,16 @@
           <div class="form-row two">
             <div class="form-row">
               <label class="field-label">Min</label>
-              <input type="number" id="sliderMin" value="${node.slider.min}" />
+              <input type="number" id="sliderMin" value="${escapeAttr(String(coerceFiniteNumber(node.slider.min, 0)))}" />
             </div>
             <div class="form-row">
               <label class="field-label">Max</label>
-              <input type="number" id="sliderMax" value="${node.slider.max}" />
+              <input type="number" id="sliderMax" value="${escapeAttr(String(coerceFiniteNumber(node.slider.max, 10)))}" />
             </div>
           </div>
           <div class="form-row">
             <label class="field-label">Default value</label>
-            <input type="number" id="defaultValue" value="${escapeHtml(String(node.defaultValue ?? 0))}" />
+            <input type="number" id="defaultValue" value="${escapeAttr(String(coerceFiniteNumber(node.defaultValue, 0)))}" />
           </div>
           <div class="form-row">
             <label class="field-label">Bands</label>
@@ -3444,7 +3843,7 @@
                 <div>
                   <label class="field-label">Band ≤ max — label</label>
                   <input type="text" data-bandlabel="${i}" value="${escapeHtml(b.label)}" placeholder="Label" />
-                  <input type="number" data-bandmax="${i}" value="${b.max}" style="margin-top:6px" />
+                  <input type="number" data-bandmax="${i}" value="${escapeAttr(String(coerceFiniteNumber(b.max, 0)))}" style="margin-top:6px" />
                   <label class="field-label" style="margin-top:8px">Band key (used in rules)</label>
                   <input type="text" data-bandkey="${i}" value="${escapeHtml(b.routeKey)}" placeholder="key" />
                 </div>
@@ -3474,7 +3873,7 @@
                   <input type="text" data-optvalue="${i}" value="${escapeHtml(o.value)}" placeholder="Value" aria-label="Value" />
                   <button type="button" class="btn btn-neutral btn-sm" data-makerule="${i}" title="Make IF/THEN rule">Make rule</button>
                   <button type="button" class="btn btn-icon btn-danger-ghost" data-delopt="${i}" title="Delete option" aria-label="Delete option">
-                    <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+                    <span class="icon-trash" aria-hidden="true"></span>
                   </button>
                 </div>`).join("")}
             </div>
@@ -3557,6 +3956,16 @@
       });
       host.querySelectorAll("[data-linkurl]").forEach((inp) => {
         inp.oninput = () => { node.links[+inp.dataset.linkurl].url = inp.value; };
+        inp.onchange = () => {
+          const cleaned = sanitizeUrl(inp.value);
+          node.links[+inp.dataset.linkurl].url = cleaned;
+          if (inp.value.trim() && !cleaned) {
+            inp.value = "";
+            toast("Only http(s) or relative links are allowed");
+          } else {
+            inp.value = cleaned;
+          }
+        };
       });
       host.querySelectorAll("[data-dellink]").forEach((btn) => {
         btn.onclick = () => { node.links.splice(+btn.dataset.dellink, 1); renderNodeEditor(node); };
@@ -3572,11 +3981,24 @@
             const firstTerminal = outcomeNodes(wf).find((o) => o.id !== node.id && isTerminalOutcome(o));
             node.next = node.next || (firstTerminal && firstTerminal.id) || wf.startNodeId;
           }
-          renderBuilder();
+          syncStepListChrome();
+          renderNodeEditor(node);
         };
       });
       const img = host.querySelector("#outcomeImage");
-      if (img) img.oninput = (e) => { node.imageUrl = e.target.value.trim(); };
+      if (img) {
+        img.oninput = (e) => { node.imageUrl = e.target.value.trim(); };
+        img.onchange = (e) => {
+          const cleaned = sanitizeUrl(e.target.value);
+          node.imageUrl = cleaned;
+          if (e.target.value.trim() && !cleaned) {
+            e.target.value = "";
+            toast("Only http(s) or relative image URLs are allowed");
+          } else {
+            e.target.value = cleaned;
+          }
+        };
+      }
       const nextSel = host.querySelector("#outcomeNext");
       if (nextSel) nextSel.onchange = (e) => { node.next = e.target.value; renderNodeEditor(node); };
       host.querySelector("#btnAddAction").onclick = () => {
@@ -3705,9 +4127,12 @@
             const refs = countAnswerValueRefs(wf, node.id, opt.value);
             showModal({
               title: "Delete option?",
-              body: `<p>Remove “${escapeHtml(label)}”?${refs
-                ? ` This will also remove <strong>${refs}</strong> condition${refs === 1 ? "" : "s"} (and any rules left empty) across the Flow.`
-                : ""}</p>`,
+              bodyText: refs
+                ? [
+                    `Remove “${label}”?`,
+                    `This will also remove ${refs} condition${refs === 1 ? "" : "s"} (and any rules left empty) across the Flow.`
+                  ]
+                : `Remove “${label}”?`,
               actions: [
                 { label: "Cancel", className: "btn-neutral", onClick: closeModal },
                 {
@@ -3772,7 +4197,7 @@
         const ri = +btn.dataset.delrule;
         showModal({
           title: "Delete rule?",
-          body: `<p>Remove rule ${ri + 1}?</p>`,
+          bodyText: `Remove rule ${ri + 1}?`,
           actions: [
             { label: "Cancel", className: "btn-neutral", onClick: closeModal },
             {
@@ -4026,13 +4451,32 @@
   }
 
   function syncStepListTitle() {
-    // light refresh of side list titles without full re-render of editor focus
+    syncStepListChrome();
+  }
+
+  /** Update step list titles/meta/badges without rebuilding the builder shell. */
+  function syncStepListChrome() {
     const wf = app.draft;
-    document.querySelectorAll("[data-sel]").forEach((btn) => {
-      const n = wf.nodes[btn.dataset.sel];
+    if (!wf) return;
+    document.querySelectorAll("#stepList .step-li").forEach((li) => {
+      const n = wf.nodes[li.dataset.stepid];
       if (!n) return;
-      const t = btn.querySelector(".si-title");
-      if (t) t.textContent = n.title || "Untitled";
+      const btn = li.querySelector(".step-item");
+      const titleEl = btn && btn.querySelector(".si-title");
+      const metaEl = btn && btn.querySelector(".si-meta");
+      const badge = btn && btn.querySelector(".step-badge");
+      if (titleEl) titleEl.textContent = n.title || "Untitled";
+      if (metaEl) {
+        let meta = n.kind;
+        if (n.kind === "question") meta += " · " + (n.fieldType || "");
+        if (n.kind === "outcome") meta += isTerminalOutcome(n) ? " · end" : " · continue";
+        if (n.id === wf.startNodeId) meta += " · start";
+        metaEl.textContent = meta;
+      }
+      if (badge) {
+        badge.textContent = n.kind === "outcome" ? (isTerminalOutcome(n) ? "●" : "→") : "?";
+        badge.classList.toggle("start", n.id === wf.startNodeId);
+      }
     });
   }
 
@@ -4149,7 +4593,7 @@
       actions: [],
       actionMarks: {}
     };
-    saveRun(run);
+    saveRun(run, { immediate: true });
     openRunner(run.id);
   }
 
@@ -4201,9 +4645,9 @@
     return `
       <button type="button"
         class="status-cycle"
-        data-action-node="${escapeHtml(nodeId)}"
+        data-action-node="${escapeAttr(nodeId)}"
         data-action-index="${index}"
-        data-status="${cur}"
+        data-status="${escapeAttr(cur)}"
         title="Tap to cycle: To do → Done → N/A"
         aria-label="Status ${ACTION_STATUS_LABELS[cur]}. Tap to cycle.">
         <span class="status-cycle-label">${ACTION_STATUS_LABELS[cur]}</span>
@@ -4435,7 +4879,7 @@
     }
 
     const stepNum = run.answers.length + 1;
-    const remaining = estimateRemaining(wf, node.id);
+    const remaining = estimateRemainingCached(wf, node.id);
     const isCheckpoint = node.kind === "outcome" && !isTerminalOutcome(node);
     const nextLabel = isCheckpoint ? "Continue" : "Next";
     const lastAnswer = run.answers.length ? run.answers[run.answers.length - 1] : null;
@@ -4463,10 +4907,10 @@
           <div class="runner-title">${escapeHtml(node.title || "")}${isCheckpoint ? ' <span class="tag">Checkpoint</span>' : ""}</div>
           <h2 class="runner-prompt">${escapeHtml(node.prompt || "")}</h2>
           ${node.guidance ? `<div class="runner-guidance">${escapeHtml(node.guidance)}</div>` : ""}
-          ${node.imageUrl ? `<img class="outcome-image" src="${escapeHtml(node.imageUrl)}" alt="" />` : ""}
+          ${renderSafeImage(node.imageUrl)}
           ${(node.links && node.links.length) ? `
             <div class="runner-links">
-              ${node.links.map((l) => `<a href="${escapeHtml(l.url)}" target="_blank" rel="noopener">${escapeHtml(l.label || l.url)}</a>`).join("")}
+              ${node.links.map((l) => renderSafeLink(l)).join("")}
             </div>` : ""}
           ${isCheckpoint && (node.actions || []).length ? `
             <div class="summary-block" style="margin-top:0;margin-bottom:16px" id="actionsBlock">
@@ -4581,19 +5025,23 @@
         document.getElementById("curVal").textContent = optionLabel(node, app.runnerValue);
       };
     } else if (ft === "slider") {
-      const min = (node.slider && node.slider.min) ?? 0;
-      const max = (node.slider && node.slider.max) ?? 10;
-      const step = (node.slider && node.slider.step) ?? 1;
-      const val = Number(app.runnerValue);
+      sanitizeNodeNumbers(node);
+      const min = coerceFiniteNumber(node.slider && node.slider.min, 0);
+      const max = coerceFiniteNumber(node.slider && node.slider.max, 10);
+      const step = coerceFiniteNumber(node.slider && node.slider.step, 1) || 1;
+      let val = coerceFiniteNumber(app.runnerValue, min);
+      if (val < min) val = min;
+      if (val > max) val = max;
+      app.runnerValue = val;
       const band = sliderBand(node, val);
       host.innerHTML = `
         <div class="slider-wrap">
-          <input type="range" id="rng" min="${min}" max="${max}" step="${step}" value="${val}" />
-          <div class="slider-labels"><span>${min}</span><span>${max}</span></div>
+          <input type="range" id="rng" min="${escapeAttr(String(min))}" max="${escapeAttr(String(max))}" step="${escapeAttr(String(step))}" value="${escapeAttr(String(val))}" />
+          <div class="slider-labels"><span>${escapeHtml(String(min))}</span><span>${escapeHtml(String(max))}</span></div>
         </div>
-        <div class="current-value">Current: <span class="val" id="curVal">${val}${band ? " · " + band.label : ""}</span></div>`;
+        <div class="current-value">Current: <span class="val" id="curVal">${escapeHtml(String(val))}${band ? " · " + escapeHtml(band.label) : ""}</span></div>`;
       host.querySelector("#rng").oninput = (e) => {
-        app.runnerValue = Number(e.target.value);
+        app.runnerValue = coerceFiniteNumber(e.target.value, min);
         const b = sliderBand(node, app.runnerValue);
         document.getElementById("curVal").textContent =
           app.runnerValue + (b ? " · " + b.label : "");
@@ -4690,10 +5138,10 @@
           </p>
           <h2 class="runner-prompt">${escapeHtml((outcome && outcome.prompt) || "Complete")}</h2>
           ${outcome && outcome.guidance ? `<div class="runner-guidance">${escapeHtml(outcome.guidance)}</div>` : ""}
-          ${outcome && outcome.imageUrl ? `<img class="outcome-image" src="${escapeHtml(outcome.imageUrl)}" alt="" />` : ""}
+          ${outcome ? renderSafeImage(outcome.imageUrl) : ""}
           ${(outcome && outcome.links && outcome.links.length) ? `
             <div class="runner-links">
-              ${outcome.links.map((l) => `<a href="${escapeHtml(l.url)}" target="_blank" rel="noopener">${escapeHtml(l.label || l.url)}</a>`).join("")}
+              ${outcome.links.map((l) => renderSafeLink(l)).join("")}
             </div>` : ""}
 
           <div class="summary-block">
